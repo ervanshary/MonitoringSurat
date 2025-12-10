@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80" # Menghubungkan port 8080 di mesin host ke port 80 di container
+    volumes:
+      - .:/var/www/html # Menghubungkan file project dengan container
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

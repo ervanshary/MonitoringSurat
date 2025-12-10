@@ -1,0 +1,17 @@
+# Abaikan folder besar
+assets/
+
+# Abaikan file besar umum
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.zip
+*.rar
+*.tar.gz
+
+# Abaikan log dan backup
+*.log
+*.bak
+*.tmp

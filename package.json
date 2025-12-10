@@ -1,0 +1,16 @@
+{
+  "name": "login-electron",
+  "version": "1.0.0",
+  "description": "Versi desktop dari aplikasi login web",
+  "main": "main.js",
+  "author": "Nama Kamu",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-packager . login-electron --platform=win32 --arch=x64 --icon=icon.ico --overwrite"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-packager": "^17.1.2"
+  }
+}

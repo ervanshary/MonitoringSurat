@@ -1,0 +1,204 @@
+/* Global Styles */
+body,
+html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Specific Styles for Report Page */
+.report-page .container-fluid {
+    padding: 20px;
+}
+
+.report-page .red-text {
+    color: red;
+    font-weight: bold;
+}
+
+.report-page .yellow-text {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.report-page .green-text {
+    color: green;
+    font-weight: bold;
+}
+
+.report-page .blue-text {
+    color: blue;
+    font-weight: bold;
+}
+
+.report-page .table-responsive {
+    overflow-x: auto;
+}
+
+.report-page table.dataTable {
+    border-collapse: collapse !important;
+    width: 100% !important;
+}
+
+.report-page table.dataTable thead th {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.report-page table.dataTable tbody td {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.report-page table.dataTable tr:last-child td {
+    border-bottom: 0;
+}
+
+.report-page .thead-dark {
+    background-color: #003366;
+    color: white;
+}
+
+/* Other General Styles */
+.container-fluid {
+    background-image: url('assets/img/background/logo.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+.fixed-top {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000; /* Sesuaikan dengan kebutuhan */
+}
+
+#content {
+    padding-top: 5px; /* Sesuaikan dengan tinggi topbar Anda */
+}
+
+/* Modal Background */
+.modal-background {
+    background-color: rgba(233, 219, 219, 0.5); /* Ubah warna sesuai keinginan Anda */
+}
+
+/* Background Image */
+.background {
+    background-image: url('assets/img/background/register.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+}
+
+/* Styles for BAST1 */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.table-responsive {
+    margin-top: 20px;
+}
+
+.table th,
+.table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.btn-group .btn {
+    margin-right: 5px;
+}
+
+.modal-header {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-header .close {
+    color: white;
+}
+
+.modal-body .form-group label.required::before {
+    content: '* ';
+    color: red;
+}
+
+.table th {
+    white-space: nowrap;
+    color: #1B4F72;
+    /* Warna biru tua */
+    
+}
+
+.table td {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Styles for Kontrak */
+#pdfPreview {
+    margin-top: 10px;
+}
+
+#pdfPreview canvas {
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.tooltipster-default .tooltipster-box {
+    background: #333;
+    color: #fff;
+}
+
+.ui-tooltip {
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* Change this to fit */
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%; /* At the bottom of the tooltip */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Target the search input in DataTables */
+.dataTables_filter input {
+    color: rgb(7, 43, 241); /* Ganti dengan warna yang Anda inginkan */
+    font-weight: bold; /* Opsional, untuk membuat teks lebih tebal */
+}

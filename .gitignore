@@ -1,0 +1,73 @@
+.DS_Store
+
+application/cache/*
+!application/cache/index.html
+
+application/logs/*
+!application/logs/index.html
+
+!application/*/.htaccess
+
+composer.lock
+tests/mocks/database/ci_test.sqlite
+
+user_guide_src/build/*
+user_guide_src/cilexer/build/*
+user_guide_src/cilexer/dist/*
+user_guide_src/cilexer/pycilexer.egg-info/*
+/vendor/
+
+# IDE Files
+#-------------------------
+/nbproject/
+.idea/*
+
+## Sublime Text cache files
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+/tests/tests/
+/tests/results/
+
+
+# Folder upload
+uploads/
+upload/
+file_upload/
+assets/upload/
+assets/img/
+assets/coba/
+exports/
+assets/backup/
+# Backup database
+database backup/
+db_backup/
+# File database
+*.sql
+*.db
+
+# Vendor jika pakai Composer
+/vendor/
+
+# Environment
+.env
+
+# Cache
+/application/cache/
+system/cache/
+
+# File log
+*.log
+
+# Node modules (jika ada)
+/node_modules/
+
+login-electron-win32-x64/
+*.exe
+*.dll
+
+# ELECTRON BUILD OUTPUTgit init
+/out/
+release/
