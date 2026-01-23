@@ -96,6 +96,19 @@ class Closing_model extends CI_Model
         return $this->db->insert('user_closing', $data);
     }
 
+    // Alias untuk save_closing_data dengan naming convention yang lebih konsisten
+    public function addClosingData($data)
+    {
+        $this->db->insert('user_closing', $data);
+        if ($this->db->affected_rows() > 0) {
+            log_message('debug', 'Data successfully inserted into user_closing');
+            return true;
+        } else {
+            log_message('error', 'Database insert into user_closing failed: ' . $this->db->last_query());
+            return false;
+        }
+    }
+
     // Mengupdate data closing
     public function update_closing($id_closing, $data)
     {

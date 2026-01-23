@@ -18,306 +18,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
 
     <!-- Custom Tailwind Configuration and Overrides -->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(90deg, #3b82f6, #06b6d4);
-            color: #1e293b;
-        }
-
-        .main-container {
-            background-color: #ffffff;
-            padding: 2.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
-            margin: 2rem auto;
-            max-width: 95%;
-        }
-
-        /* === HEADER TABEL === */
-        #parkir-filter-tabel thead th {
-            background: linear-gradient(90deg, #2563eb, #0ea5e9);
-            color: #fff;
-            text-align: center;
-            text-transform: uppercase;
-            font-weight: 600;
-            font-size: 0.85rem;
-            padding: 10px;
-            border-bottom: 2px solid #0ea5e9;
-        }
-
-        /* === ISI TABEL === */
-        #parkir-filter-tabel td {
-            text-align: center;
-            vertical-align: middle;
-            padding: 8px 10px;
-            color: #1e293b;
-            font-size: 0.85rem;
-            border: 1px solid #e2e8f0;
-        }
-
-        #parkir-filter-tabel tbody tr:nth-child(odd) {
-            background-color: #f8fafc;
-        }
-
-        #parkir-filter-tabel tbody tr:hover {
-            background-color: #e0f2fe;
-        }
-
-        /* === TOMBOL === */
-        .btn {
-            border-radius: 8px !important;
-            font-size: 0.8rem !important;
-            font-weight: 600;
-            padding: 6px 10px;
-            transition: all 0.2s ease-in-out;
-        }
-
-        .btn-info {
-            background: linear-gradient(90deg, #0ea5e9, #38bdf8);
-            border: none;
-            color: white;
-        }
-
-        .btn-info:hover {
-            background: linear-gradient(90deg, #0284c7, #0ea5e9);
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, #2563eb, #3b82f6);
-            border: none;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(90deg, #1d4ed8, #2563eb);
-        }
-
-        .btn-success {
-            background: linear-gradient(90deg, #059669, #10b981);
-            border: none;
-            color: white;
-        }
-
-        .btn-warning {
-            background: linear-gradient(90deg, #f59e0b, #fbbf24);
-            border: none;
-            color: white;
-        }
-
-        /* Lebar kolom proporsional */
-        #parkir-filter-tabel th,
-        #parkir-filter-tabel td {
-            white-space: nowrap;
-        }
-
-        #parkir-filter-tabel th:nth-child(1) {
-            width: 4%;
-        }
-
-        #parkir-filter-tabel th:nth-child(2),
-        #parkir-filter-tabel th:nth-child(3),
-        #parkir-filter-tabel th:nth-child(4) {
-            width: 12%;
-        }
-
-        #parkir-filter-tabel th:nth-child(5),
-        #parkir-filter-tabel th:nth-child(6),
-        #parkir-filter-tabel th:nth-child(7),
-        #parkir-filter-tabel th:nth-child(8) {
-            width: 10%;
-        }
-
-        #parkir-filter-tabel th:nth-child(9) {
-            width: 15%;
-        }
-
-        #parkir-filter-tabel th:nth-child(10) {
-            width: 10%;
-        }
-
-        #parkir-filter-tabel th:nth-child(11) {
-            width: 10%;
-        }
-
-        /* ===== MODAL DESIGN REFINED ===== */
-        .modal-content {
-            border-radius: 1rem !important;
-            border: none !important;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }
-
-        .modal-header {
-            background: linear-gradient(90deg, #3b82f6, #06b6d4);
-            color: #ffffff !important;
-            text-align: center;
-            justify-content: center;
-            position: relative;
-            padding: 1rem 1.5rem;
-            border-bottom: none;
-        }
-
-        .modal-header .modal-title {
-            font-weight: 700;
-            font-size: 1.25rem;
-            letter-spacing: 0.5px;
-            margin: 0 auto;
-        }
-
-        .modal-header .close {
-            position: absolute;
-            right: 1rem;
-            top: 0.8rem;
-            color: #fff !important;
-            opacity: 0.8;
-            font-size: 1.4rem;
-            transition: opacity 0.2s ease;
-        }
-
-        .modal-header .close:hover {
-            opacity: 1;
-        }
-
-        .modal-body {
-            background-color: #f8fafc;
-            padding: 1.75rem 2rem;
-            color: #1e293b;
-        }
-
-        .modal-body label {
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.3rem;
-        }
-
-        .modal-body .form-control {
-            border-radius: 0.5rem;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
-            transition: all 0.2s ease;
-        }
-
-        .modal-body .form-control:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-        }
-
-        .modal-footer {
-            background-color: #f1f5f9;
-            border-top: 1px solid #e2e8f0;
-            padding: 1rem 1.5rem;
-            border-bottom-left-radius: 1rem;
-            border-bottom-right-radius: 1rem;
-        }
-
-        /* Upload area */
-        .upload-area {
-            border: 2px dashed #94a3b8;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            text-align: center;
-            cursor: pointer;
-            background-color: #f1f5f9;
-            transition: all 0.3s;
-        }
-
-        .upload-area:hover {
-            background-color: #e0f2fe;
-            border-color: #3b82f6;
-        }
-
-        .upload-placeholder span {
-            font-size: 2rem;
-            color: #3b82f6;
-        }
-
-        .upload-placeholder p {
-            color: #475569;
-            font-size: 0.9rem;
-        }
-
-        /* Image preview grid */
-        .image-preview {
-            position: relative;
-            margin-right: 0.75rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .image-preview img {
-            width: 100px;
-            height: 100px;
-            border-radius: 0.5rem;
-            object-fit: cover;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .image-preview .remove-image {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background-color: #ef4444;
-            border: none;
-            color: #fff;
-            font-size: 0.8rem;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        /* Modal buttons */
-        .modal-footer .btn {
-            min-width: 100px;
-            font-weight: 600;
-            text-transform: uppercase;
-            border-radius: 0.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .modal-footer .btn-primary {
-            background-color: #3b82f6;
-            border: none;
-            box-shadow: 0 3px 0 #1d4ed8;
-        }
-
-        .modal-footer .btn-primary:hover {
-            background-color: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 0 #1d4ed8;
-        }
-
-        .modal-footer .btn-secondary {
-            background-color: #64748b;
-            border: none;
-        }
-
-        .modal-footer .btn-secondary:hover {
-            background-color: #475569;
-        }
-
-        .modal-footer .btn-danger {
-            background-color: #ef4444;
-            border: none;
-            box-shadow: 0 3px 0 #b91c1c;
-        }
-
-        .modal-footer .btn-danger:hover {
-            background-color: #dc2626;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 0 #b91c1c;
-        }
-
-        /* Detail modal (readonly fields) */
-        .modal-body .form-control[readonly],
-        .modal-body textarea[readonly] {
-            background-color: #e2e8f0;
-            border: none;
-            color: #334155;
-        }
-    </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/parkir.css'); ?>">
 
 </head>
 
@@ -325,7 +26,7 @@
 <body class="bg-gradient-to-r from-white via-cyan-100 to-cyan-400 min-h-screen">
 
 
-    <div class="main-container mx-auto">
+    <div class="main-container">
         <!-- Page Heading -->
         <?php if ($this->session->flashdata('message')) : ?>
             <div class="alert alert-success"><?= $this->session->flashdata('message'); ?></div>
@@ -336,7 +37,8 @@
         <div class="container">
             <!-- Reminder Modal -->
             <?php if (!empty($parkir_reminders)) : ?>
-                <div class="modal fade" id="reminderModal" tabindex="-1" role="dialog" aria-labelledby="reminderModalLabel" aria-hidden="true">
+                <div class="modal fade" id="reminderModal" tabindex="-1" role="dialog" aria-labelledby="reminderModalLabel"
+                    aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -352,10 +54,23 @@
                                         <li>
                                             <strong>Perusahaan:</strong> <?= htmlspecialchars($reminder['perusahaan']); ?><br>
                                             <strong>Nama Member:</strong> <?= htmlspecialchars($reminder['nama_member']); ?><br>
-                                            <strong>No Kendaraan:</strong> <?= htmlspecialchars($reminder['no_kendaraan']); ?><br>
+                                            <strong>No Kendaraan:</strong>
+                                            <?= htmlspecialchars($reminder['no_kendaraan']); ?><br>
                                             <strong>No Kartu:</strong> <?= htmlspecialchars($reminder['no_kartu']); ?><br>
-                                            <strong>Tanggal Berakhir:</strong> <?= htmlspecialchars($reminder['tgl_berakhir']); ?><br>
-                                            <a href="#" class="btn btn-primary edit-btn" data-id_parkir="<?= $reminder['id_parkir']; ?>" data-perusahaan="<?= $reminder['perusahaan']; ?>" data-nama_member="<?= $reminder['nama_member']; ?>" data-no_kendaraan="<?= $reminder['no_kendaraan']; ?>" data-no_kartu="<?= $reminder['no_kartu']; ?>" data-jenis_kendaraan="<?= $reminder['jenis_kendaraan']; ?>" data-tgl_pembuatan="<?= $reminder['tgl_pembuatan']; ?>" data-tgl_berakhir="<?= $reminder['tgl_berakhir']; ?>" data-keterangan="<?= $reminder['keterangan']; ?>" data-scan_dokumen="<?= $reminder['scan_dokumen']; ?>" data-status="<?= $reminder['status']; ?>">Edit</a>
+                                            <strong>Tanggal Berakhir:</strong>
+                                            <?= htmlspecialchars($reminder['tgl_berakhir']); ?><br>
+                                            <a href="#" class="btn btn-primary edit-btn"
+                                                data-id_parkir="<?= $reminder['id_parkir']; ?>"
+                                                data-perusahaan="<?= $reminder['perusahaan']; ?>"
+                                                data-nama_member="<?= $reminder['nama_member']; ?>"
+                                                data-no_kendaraan="<?= $reminder['no_kendaraan']; ?>"
+                                                data-no_kartu="<?= $reminder['no_kartu']; ?>"
+                                                data-jenis_kendaraan="<?= $reminder['jenis_kendaraan']; ?>"
+                                                data-tgl_pembuatan="<?= $reminder['tgl_pembuatan']; ?>"
+                                                data-tgl_berakhir="<?= $reminder['tgl_berakhir']; ?>"
+                                                data-keterangan="<?= $reminder['keterangan']; ?>"
+                                                data-scan_dokumen="<?= $reminder['scan_dokumen']; ?>"
+                                                data-status="<?= $reminder['status']; ?>">Edit</a>
                                         </li>
                                         <hr>
                                     <?php endforeach; ?>
@@ -407,15 +122,33 @@
                 <tbody>
                     <?php foreach ($parkirs as $data) : ?>
                         <tr>
-                            <td data-toggle="tooltip" data-placement="top" title="<?= htmlspecialchars($data['id_parkir'] ?? ''); ?>"><?= $data['id_parkir'] ?? ''; ?></td>
-                            <td data-toggle="tooltip" data-placement="top" title="<?= htmlspecialchars($data['perusahaan'] ?? ''); ?>"><?= $data['perusahaan'] ?? ''; ?></td>
-                            <td data-toggle="tooltip" data-placement="top" title="<?= htmlspecialchars($data['nama_member'] ?? ''); ?>"><?= $data['nama_member'] ?? ''; ?></td>
-                            <td data-toggle="tooltip" data-placement="top" title="<?= htmlspecialchars($data['no_kendaraan'] ?? ''); ?>"><?= $data['no_kendaraan'] ?? ''; ?></td>
-                            <td data-toggle="tooltip" data-placement="top" title="<?= htmlspecialchars($data['no_kartu'] ?? ''); ?>"><?= $data['no_kartu'] ?? ''; ?></td>
-                            <td data-toggle="tooltip" data-placement="top" title="<?= htmlspecialchars($data['jenis_kendaraan'] ?? ''); ?>"><?= $data['jenis_kendaraan'] ?? ''; ?></td>
-                            <td data-toggle="tooltip" data-placement="top" title="<?= htmlspecialchars($data['tgl_pembuatan'] ?? ''); ?>"><?= $data['tgl_pembuatan'] ?? ''; ?></td>
-                            <td data-toggle="tooltip" data-placement="top" title="<?= htmlspecialchars($data['tgl_berakhir'] ?? ''); ?>"><?= $data['tgl_berakhir'] ?? ''; ?></td>
-                            <td data-toggle="tooltip" data-placement="top" title="<?= htmlspecialchars($data['keterangan'] ?? ''); ?>"><?= $data['keterangan'] ?? ''; ?></td>
+                            <td data-toggle="tooltip" data-placement="top"
+                                title="<?= htmlspecialchars($data['id_parkir'] ?? ''); ?>"><?= $data['id_parkir'] ?? ''; ?>
+                            </td>
+                            <td data-toggle="tooltip" data-placement="top"
+                                title="<?= htmlspecialchars($data['perusahaan'] ?? ''); ?>">
+                                <?= $data['perusahaan'] ?? ''; ?></td>
+                            <td data-toggle="tooltip" data-placement="top"
+                                title="<?= htmlspecialchars($data['nama_member'] ?? ''); ?>">
+                                <?= $data['nama_member'] ?? ''; ?></td>
+                            <td data-toggle="tooltip" data-placement="top"
+                                title="<?= htmlspecialchars($data['no_kendaraan'] ?? ''); ?>">
+                                <?= $data['no_kendaraan'] ?? ''; ?></td>
+                            <td data-toggle="tooltip" data-placement="top"
+                                title="<?= htmlspecialchars($data['no_kartu'] ?? ''); ?>"><?= $data['no_kartu'] ?? ''; ?>
+                            </td>
+                            <td data-toggle="tooltip" data-placement="top"
+                                title="<?= htmlspecialchars($data['jenis_kendaraan'] ?? ''); ?>">
+                                <?= $data['jenis_kendaraan'] ?? ''; ?></td>
+                            <td data-toggle="tooltip" data-placement="top"
+                                title="<?= htmlspecialchars($data['tgl_pembuatan'] ?? ''); ?>">
+                                <?= $data['tgl_pembuatan'] ?? ''; ?></td>
+                            <td data-toggle="tooltip" data-placement="top"
+                                title="<?= htmlspecialchars($data['tgl_berakhir'] ?? ''); ?>">
+                                <?= $data['tgl_berakhir'] ?? ''; ?></td>
+                            <td data-toggle="tooltip" data-placement="top"
+                                title="<?= htmlspecialchars($data['keterangan'] ?? ''); ?>">
+                                <?= $data['keterangan'] ?? ''; ?></td>
                             <td>
                                 <?php if ($data['scan_dokumen']) : ?>
                                     <a href="<?= base_url('assets/upload/parkir/' . $data['scan_dokumen']); ?>" target="_blank">
@@ -443,8 +176,8 @@
                                     </button>
 
                                     <!-- Button to trigger Edit Modal -->
-                                    <button type="button" class="btn btn-primary edit-btn" data-toggle="modal" data-target="#editModal"
-                                        data-id_parkir="<?= $data['id_parkir']; ?>"
+                                    <button type="button" class="btn btn-primary edit-btn" data-toggle="modal"
+                                        data-target="#editModal" data-id_parkir="<?= $data['id_parkir']; ?>"
                                         data-perusahaan="<?= htmlspecialchars($data['perusahaan'] ?? ''); ?>"
                                         data-nama_member="<?= htmlspecialchars($data['nama_member'] ?? ''); ?>"
                                         data-no_kendaraan="<?= htmlspecialchars($data['no_kendaraan'] ?? ''); ?>"
@@ -467,7 +200,8 @@
 
 
         <!-- Modal -->
-        <div class="modal fade" id="newParkirmodal" tabindex="-1" role="dialog" aria-labelledby="newParkirmodalLabel" aria-hidden="true">
+        <div class="modal fade" id="newParkirmodal" tabindex="-1" role="dialog" aria-labelledby="newParkirmodalLabel"
+            aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -496,7 +230,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="jenis_kendaraan">Jenis Kendaraan</label>
-                                <input type="text" class="form-control" id="jenis_kendaraan" name="jenis_kendaraan" required>
+                                <input type="text" class="form-control" id="jenis_kendaraan" name="jenis_kendaraan"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="tgl_pembuatan">Tanggal pembuatan</label>
@@ -532,7 +267,8 @@
         </div>
 
         <!-- Modal Detail -->
-        <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel"
+            aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content shadow-lg rounded-lg">
                     <div class="modal-header bg-gradient-primary text-white">
@@ -547,47 +283,57 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="modal-id_parkir">ID Parkir</label>
-                                        <input type="text" class="form-control border-0 bg-light" id="modal-id_parkir" readonly>
+                                        <input type="text" class="form-control border-0 bg-light" id="modal-id_parkir"
+                                            readonly>
                                     </div>
                                     <div class="form-group">
                                         <label for="modal-perusahaan">Perusahaan</label>
-                                        <input type="text" class="form-control border-0 bg-light" id="modal-perusahaan" readonly>
+                                        <input type="text" class="form-control border-0 bg-light" id="modal-perusahaan"
+                                            readonly>
                                     </div>
                                     <div class="form-group">
                                         <label for="modal-nama_member">Nama Member</label>
-                                        <input type="text" class="form-control border-0 bg-light" id="modal-nama_member" readonly>
+                                        <input type="text" class="form-control border-0 bg-light" id="modal-nama_member"
+                                            readonly>
                                     </div>
                                     <div class="form-group">
                                         <label for="modal-no_kendaraan">No Kendaraan</label>
-                                        <input type="text" class="form-control border-0 bg-light" id="modal-no_kendaraan" readonly>
+                                        <input type="text" class="form-control border-0 bg-light"
+                                            id="modal-no_kendaraan" readonly>
                                     </div>
                                     <div class="form-group">
                                         <label for="modal-no_kartu">No Kartu</label>
-                                        <input type="text" class="form-control border-0 bg-light" id="modal-no_kartu" readonly>
+                                        <input type="text" class="form-control border-0 bg-light" id="modal-no_kartu"
+                                            readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="modal-jenis_kendaraan">Jenis Kendaraan</label>
-                                        <input type="text" class="form-control border-0 bg-light" id="modal-jenis_kendaraan" readonly>
+                                        <input type="text" class="form-control border-0 bg-light"
+                                            id="modal-jenis_kendaraan" readonly>
                                     </div>
                                     <div class="form-group">
                                         <label for="modal-tgl_pembuatan">Tanggal Pembuatan</label>
-                                        <input type="text" class="form-control border-0 bg-light" id="modal-tgl_pembuatan" readonly>
+                                        <input type="text" class="form-control border-0 bg-light"
+                                            id="modal-tgl_pembuatan" readonly>
                                     </div>
                                     <div class="form-group">
                                         <label for="modal-tgl_berakhir">Tanggal Berakhir</label>
-                                        <input type="text" class="form-control border-0 bg-light" id="modal-tgl_berakhir" readonly>
+                                        <input type="text" class="form-control border-0 bg-light"
+                                            id="modal-tgl_berakhir" readonly>
                                     </div>
                                     <div class="form-group">
                                         <label for="modal-keterangan">Keterangan</label>
-                                        <textarea class="form-control border-0 bg-light" id="modal-keterangan" rows="3" readonly></textarea>
+                                        <textarea class="form-control border-0 bg-light" id="modal-keterangan" rows="3"
+                                            readonly></textarea>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group mt-4">
                                 <label for="modal-scan_dokumen">Scan Dokumen (PDF)</label>
-                                <a href="#" id="modal-scan_dokumen" class="btn btn-outline-primary btn-sm" target="_blank">View File</a>
+                                <a href="#" id="modal-scan_dokumen" class="btn btn-outline-primary btn-sm"
+                                    target="_blank">View File</a>
                             </div>
                             <div class="form-group mt-4">
                                 <label for="modal-scan_dokumen_jpg">Scan Dokumen (Images)</label>
@@ -605,7 +351,8 @@
         </div>
 
         <!-- Modal Edit -->
-        <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+            aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -627,11 +374,13 @@
                             </div>
                             <div class="form-group">
                                 <label for="edit-nama_member">Nama Member</label>
-                                <input type="text" class="form-control" id="edit-nama_member" name="nama_member" required>
+                                <input type="text" class="form-control" id="edit-nama_member" name="nama_member"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="edit-no_kendaraan">No Kendaraan</label>
-                                <input type="text" class="form-control" id="edit-no_kendaraan" name="no_kendaraan" required>
+                                <input type="text" class="form-control" id="edit-no_kendaraan" name="no_kendaraan"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="edit-no_kartu">No Kartu</label>
@@ -639,19 +388,23 @@
                             </div>
                             <div class="form-group">
                                 <label for="edit-jenis_kendaraan">Jenis Kendaraan</label>
-                                <input type="text" class="form-control" id="edit-jenis_kendaraan" name="jenis_kendaraan" required>
+                                <input type="text" class="form-control" id="edit-jenis_kendaraan" name="jenis_kendaraan"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="edit-tgl_pembuatan">Tanggal Pembuatan</label>
-                                <input type="date" class="form-control" id="edit-tgl_pembuatan" name="tgl_pembuatan" required>
+                                <input type="date" class="form-control" id="edit-tgl_pembuatan" name="tgl_pembuatan"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="edit-tgl_berakhir">Tanggal Berakhir</label>
-                                <input type="date" class="form-control" id="edit-tgl_berakhir" name="tgl_berakhir" required>
+                                <input type="date" class="form-control" id="edit-tgl_berakhir" name="tgl_berakhir"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="edit-keterangan">Keterangan</label>
-                                <textarea class="form-control" id="edit-keterangan" name="keterangan" rows="3"></textarea>
+                                <textarea class="form-control" id="edit-keterangan" name="keterangan"
+                                    rows="3"></textarea>
                             </div>
                             <div class="form-group">
                                 <label for="edit-scan_dokumen">Scan Dokumen</label>
@@ -669,7 +422,8 @@
         </div>
 
         <!-- Modal Import -->
-        <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel"
+            aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -679,7 +433,8 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form action="<?= base_url('user/import_parkir'); ?>" method="post" enctype="multipart/form-data">
+                        <form action="<?= base_url('user/import_parkir'); ?>" method="post"
+                            enctype="multipart/form-data">
                             <div class="form-group">
                                 <label for="importFile">Pilih File Excel:</label>
                                 <input type="file" class="form-control-file" id="importFile" name="importFile" required>
@@ -742,7 +497,8 @@
                     $('#modal-tgl_berakhir').val(tgl_berakhir);
                     $('#modal-keterangan').val(keterangan);
                     if (scan_dokumen) {
-                        $('#modal-scan_dokumen').attr('href', '<?= base_url('assets/upload/parkir/'); ?>' + scan_dokumen);
+                        $('#modal-scan_dokumen').attr('href',
+                            '<?= base_url('assets/upload/parkir/'); ?>' + scan_dokumen);
                         $('#modal-scan_dokumen').text(scan_dokumen);
                     } else {
                         $('#modal-scan_dokumen').attr('href', '#').text('No file');

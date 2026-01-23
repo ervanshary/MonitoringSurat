@@ -62,6 +62,7 @@ $route['user/asbuiltdrawing'] = 'user/asbuiltdrawing';
 $route['user/bast1'] = 'user/getBAST';
 $route['user/editbast1'] = 'user/editbast1';
 $route['user/update_bast_data'] = 'user/update_bast_data';
+$route['user/add_bast_data'] = 'user/add_bast_data';
 $route['user/edit_bast/(:any)'] = 'user/editBAST1/$1';
 $route['user/editBAST1/(:num)'] = 'user/editBAST1/$1';
 $route['user/updateBAST1/(:num)'] = 'user/updateBAST1/$1';

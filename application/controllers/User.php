@@ -199,8 +199,21 @@ class User extends CI_Controller
         }
     }
 
+    /**
+     * Helper function untuk memastikan kolom created_by ada di tabel user_final_account
+     */
+    private function ensure_created_by_column()
+    {
+        if (!$this->db->field_exists('created_by', 'user_final_account')) {
+            $this->db->query("ALTER TABLE user_final_account ADD COLUMN created_by VARCHAR(100) NULL DEFAULT NULL AFTER id");
+        }
+    }
+
     public function finalaccount()
     {
+        // Pastikan kolom created_by ada
+        $this->ensure_created_by_column();
+
         $data['title'] = 'Kontrak';
         $data['user'] = $this->db->get_where('user', [
             'email' => $this->session->userdata('email')
@@ -248,6 +261,12 @@ class User extends CI_Controller
                 'updated_by' => $data['user']['name'], // ambil nama user login
                 'updated_at' => date('Y-m-d H:i:s')
             ];
+
+            // Cek apakah kolom created_by ada di database
+            $fields = $this->db->list_fields('user_final_account');
+            if (in_array('created_by', $fields)) {
+                $insertData['created_by'] = $data['user']['name'];
+            }
 
             $this->db->insert('user_final_account', $insertData);
 
@@ -612,7 +631,46 @@ class User extends CI_Controller
         }
     }
 
+    /**
+     * Update Asbuilt Data via AJAX
+     */
+    public function update_asbuilt_data()
+    {
+        header('Content-Type: application/json');
+        $id_asbuilt = $this->input->post('id_asbuilt');
+        $tgl_terima = $this->input->post('tgl_terima');
+        $status = $this->input->post('status');
+        $keterangan = $this->input->post('keterangan');
 
+        if (empty($id_asbuilt)) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'ID tidak valid'
+            ]);
+            return;
+        }
+
+        $data = [
+            'tgl_terima' => $tgl_terima,
+            'status' => $status,
+            'keterangan' => $keterangan
+        ];
+
+        $this->db->where('id_asbuilt', $id_asbuilt);
+        $updated = $this->db->update('user_asbuiltdrawing', $data);
+
+        if ($updated) {
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Data berhasil diperbarui'
+            ]);
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Gagal memperbarui data'
+            ]);
+        }
+    }
 
     public function update_asbuilt_drawing()
     {
@@ -655,6 +713,7 @@ class User extends CI_Controller
     // User.php (Controller)
     public function getKontrakByNamaPT()
     {
+        header('Content-Type: application/json');
         $nama_pt = $this->input->post('nama_pt');
         $this->db->select('no_kontrak');
         $this->db->where('nama_pt', $nama_pt);
@@ -664,20 +723,32 @@ class User extends CI_Controller
     // User.php (Controller)
     public function getPekerjaanByNoKontrak()
     {
+        header('Content-Type: application/json');
         $no_kontrak = $this->input->post('no_kontrak');
-        $this->db->select('pekerjaan');
+        $this->db->select('pekerjaan, status');
         $this->db->where('no_kontrak', $no_kontrak);
         $result = $this->db->get('user_final_account')->row_array();
-        echo json_encode($result);
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'data' => $result]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Data tidak ditemukan']);
+        }
     }
     // User.php (Controller)
     public function getStatusByPekerjaan()
     {
+        header('Content-Type: application/json');
         $pekerjaan = $this->input->post('pekerjaan');
         $this->db->select('status');
         $this->db->where('pekerjaan', $pekerjaan);
         $result = $this->db->get('user_final_account')->row_array();
-        echo json_encode($result);
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'data' => $result]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Data tidak ditemukan']);
+        }
     }
 
 
@@ -685,6 +756,9 @@ class User extends CI_Controller
 
     public function getBAST()
     {
+        // Pastikan kolom created_by ada
+        $this->ensure_created_by_column_bast();
+
         $data['title'] = 'BAST 1';
         $data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
 
@@ -730,8 +804,11 @@ class User extends CI_Controller
 
     public function add_bast_data()
     {
-        log_message('debug', 'add_bast_data method accessed');
+        log_message('debug', '=== add_bast_data method accessed ===');
+        log_message('debug', 'Is AJAX: ' . ($this->input->is_ajax_request() ? 'YES' : 'NO'));
         log_message('debug', 'Post data: ' . print_r($this->input->post(), true));
+
+        $is_ajax = $this->input->is_ajax_request();
 
         // Add form validation rules here if not already set in the constructor
         $this->form_validation->set_rules('no_kontrak', 'No Kontrak', 'required');
@@ -741,8 +818,15 @@ class User extends CI_Controller
         $this->form_validation->set_rules('opsi_retensi', 'Opsi Retensi', 'required');
 
         if ($this->form_validation->run() == FALSE) {
-            log_message('error', 'Form validation failed: ' . validation_errors());
-            $this->session->set_flashdata('error', validation_errors());
+            $error = validation_errors();
+            log_message('error', 'Form validation failed: ' . $error);
+            
+            if ($is_ajax) {
+                echo json_encode(['status' => 'error', 'message' => $error]);
+                return;
+            }
+            
+            $this->session->set_flashdata('error', $error);
             redirect('user/getBAST');
             return;
         }
@@ -766,15 +850,41 @@ class User extends CI_Controller
 
             if (!$upload_result['success']) {
                 log_message('error', 'File upload failed: ' . $upload_result['error']);
+                
+                if ($is_ajax) {
+                    echo json_encode(['status' => 'error', 'message' => 'File upload failed: ' . $upload_result['error']]);
+                    return;
+                }
+                
                 $this->session->set_flashdata('error', 'File upload failed: ' . $upload_result['error']);
                 redirect('user/getBAST');
-                return; // Exit the function if file upload fails
+                return;
             }
 
             $data['file_pdf'] = $upload_result['file_name'];
         }
 
         log_message('debug', 'Data to be inserted into user_bast: ' . print_r($data, true));
+
+        // Add created_by if column exists
+        if ($this->db->field_exists('created_by', 'user_bast')) {
+            $user_info = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+            $data['created_by'] = $user_info['name'];
+        }
+
+        // Check if no_kontrak already exists
+        $existing = $this->db->where('no_kontrak', $data['no_kontrak'])->get('user_bast')->row();
+        if ($existing) {
+            $error_msg = 'Data dengan No Kontrak "' . $data['no_kontrak'] . '" sudah ada di database!';
+            log_message('error', 'Duplicate no_kontrak: ' . $error_msg);
+            if ($is_ajax) {
+                echo json_encode(['status' => 'error', 'message' => $error_msg]);
+                return;
+            }
+            $this->session->set_flashdata('error', $error_msg);
+            redirect('user/getBAST');
+            return;
+        }
 
         // Insert data into user_bast table
         if ($this->Bast_model->addBastData($data)) {
@@ -786,34 +896,41 @@ class User extends CI_Controller
 
             log_message('debug', 'Data to be inserted into user_bast2: ' . print_r($bast2_data, true));
 
-            if ($this->Bast_model->addBast2Data($bast2_data)) {
-                log_message('debug', 'Data successfully inserted into user_bast2');
-
-                // Insert data into user_closing table
-                $closing_data = [
-                    'no_kontrak' => $data['no_kontrak'],
-                    'nama_pt' => $this->input->post('nama_pt'), // Assuming you have 'nama_pt' in the form input
-                    'pekerjaan' => $this->input->post('pekerjaan'), // Assuming you have 'pekerjaan' in the form input
-                    'tgl_terima_bast' => $data['tgl_terima_bast'],
-                    'file_pdf' => $data['file_pdf']
-                ];
-
-                if ($this->Closing_model->addClosingData($closing_data)) {
-                    log_message('debug', 'Data successfully inserted into user_closing');
-                    $this->session->set_flashdata('message', 'Data berhasil disimpan.');
-                } else {
-                    log_message('error', 'Failed to insert data into user_closing');
-                    $this->session->set_flashdata('error', 'Gagal menyimpan data ke user_closing.');
-                }
-
-                redirect('user/getBAST');
-            } else {
+            // Try to insert into bast2 but don't fail if it fails (optional)
+            if (!$this->Bast_model->addBast2Data($bast2_data)) {
                 log_message('error', 'Failed to insert data into user_bast2: ' . $this->db->last_query());
-                $this->session->set_flashdata('error', 'Gagal menyimpan data ke user_bast2.');
-                redirect('user/getBAST');
+            } else {
+                log_message('debug', 'Data successfully inserted into user_bast2');
             }
+
+            // Try to insert into user_closing but don't fail if it fails (optional)
+            $closing_data = [
+                'no_kontrak' => $data['no_kontrak'],
+                'nama_pt' => $this->input->post('nama_pt'),
+                'pekerjaan' => $this->input->post('pekerjaan'),
+                'tgl_terima_bast' => $data['tgl_terima_bast'],
+                'file_pdf' => isset($data['file_pdf']) ? $data['file_pdf'] : '-'
+            ];
+
+            if (!$this->Closing_model->addClosingData($closing_data)) {
+                log_message('error', 'Failed to insert data into user_closing');
+            } else {
+                log_message('debug', 'Data successfully inserted into user_closing');
+            }
+
+            // Main success response - data sudah tersimpan ke user_bast
+            if ($is_ajax) {
+                echo json_encode(['status' => 'success', 'message' => 'Data berhasil disimpan ke user_bast']);
+                return;
+            }
+            $this->session->set_flashdata('message', 'Data berhasil disimpan.');
+            redirect('user/getBAST');
         } else {
             log_message('error', 'Failed to insert data into user_bast: ' . $this->db->last_query());
+            if ($is_ajax) {
+                echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan data ke user_bast']);
+                return;
+            }
             $this->session->set_flashdata('error', 'Gagal menyimpan data ke user_bast.');
             redirect('user/getBAST');
         }
@@ -913,13 +1030,22 @@ class User extends CI_Controller
         // Isi data yang digabungkan ke dalam spreadsheet
         $row = 3;
         foreach ($merged_data as $row_data) {
+            // Helper function to format date from YYYY-MM-DD to DD-MM-YYYY
+            $formatDate = function ($date_value) {
+                if (empty($date_value) || $date_value == '0000-00-00') {
+                    return '';
+                }
+                $date = new DateTime($date_value);
+                return $date->format('d-m-Y');
+            };
+
             $sheet->setCellValue('A' . $row, $row_data['no_kontrak']);
             $sheet->setCellValue('B' . $row, $row_data['nama_pt']);
             $sheet->setCellValue('C' . $row, $row_data['pekerjaan']);
             $sheet->setCellValue('D' . $row, $row_data['keterangan']);
-            $sheet->setCellValue('E' . $row, $row_data['tgl_terima_bast']);
-            $sheet->setCellValue('F' . $row, $row_data['tgl_pusat']);
-            $sheet->setCellValue('G' . $row, $row_data['tgl_kontraktor']);
+            $sheet->setCellValue('E' . $row, $formatDate($row_data['tgl_terima_bast']));
+            $sheet->setCellValue('F' . $row, $formatDate($row_data['tgl_pusat']));
+            $sheet->setCellValue('G' . $row, $formatDate($row_data['tgl_kontraktor']));
             $row++;
         }
 
@@ -1019,16 +1145,18 @@ class User extends CI_Controller
         log_message('debug', 'updatebast1 method accessed');
         log_message('debug', 'Post data: ' . print_r($this->input->post(), true));
 
-        $this->form_validation->set_rules('id_bast', 'ID BAST');
-        // $this->form_validation->set_rules('id_asbuilt', 'ID Asbuilt', 'required');
-        $this->form_validation->set_rules('no_kontrak', 'No Kontrak', 'required');
-        $this->form_validation->set_rules('nama_pt', 'Nama PT', 'required');
-        $this->form_validation->set_rules('pekerjaan', 'Pekerjaan', 'required');
+        $this->form_validation->set_rules('id_bast', 'ID BAST', 'required');
+        $this->form_validation->set_rules('id_asbuilt', 'ID Asbuilt', 'required');
         $this->form_validation->set_rules('tgl_terima_asbuilt', 'Tanggal Terima Asbuilt');
-        $this->form_validation->set_rules('status_asbuilt', 'Status Asbuilt', 'required');
         $this->form_validation->set_rules('tgl_terima_bast', 'Tanggal Terima BAST', 'required');
-        $this->form_validation->set_rules('keterangan', 'Keterangan', 'required');
-        $this->form_validation->set_rules('opsi_retensi', 'Opsi Retensi', 'required');
+        
+        // Optional fields - tidak perlu required saat edit
+        // $this->form_validation->set_rules('no_kontrak', 'No Kontrak', 'required');
+        // $this->form_validation->set_rules('nama_pt', 'Nama PT', 'required');
+        // $this->form_validation->set_rules('pekerjaan', 'Pekerjaan', 'required');
+        // $this->form_validation->set_rules('status_asbuilt', 'Status Asbuilt', 'required');
+        // $this->form_validation->set_rules('keterangan', 'Keterangan', 'required');
+        // $this->form_validation->set_rules('opsi_retensi', 'Opsi Retensi', 'required');
 
         if ($this->form_validation->run() == FALSE) {
             log_message('error', 'Form validation failed: ' . validation_errors());
@@ -1047,13 +1175,12 @@ class User extends CI_Controller
             'opsi_retensi' => $this->input->post('opsi_retensi')
         );
 
-        $asbuilt_data = array(
-            'no_kontrak' => $this->input->post('no_kontrak'),
-            'nama_pt' => $this->input->post('nama_pt'),
-            'pekerjaan' => $this->input->post('pekerjaan'),
-            'tgl_terima_asbuilt' => $this->input->post('tgl_terima_asbuilt'),
-            'status_asbuilt' => $this->input->post('status_asbuilt')
-        );
+        $asbuilt_data = [
+    'tgl_terima' => $this->input->post('tgl_terima_asbuilt'), // Map dari form ke kolom database
+    'status'     => $this->input->post('status_asbuilt'),     // Kolom yang ada di user_asbuiltdrawing
+];
+
+
 
         if (!empty($_FILES['file_pdf']['name'])) {
             $upload_result = $this->uploadFile();
@@ -1071,14 +1198,29 @@ class User extends CI_Controller
         log_message('debug', 'Data to be updated in user_bast: ' . print_r($bast_data, true));
         log_message('debug', 'Data to be updated in user_asbuiltdrawing: ' . print_r($asbuilt_data, true));
 
+        // Add updated_by if column exists
+        if ($this->db->field_exists('updated_by', 'user_bast')) {
+            $user_info = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+            $bast_data['updated_by'] = $user_info['name'];
+        }
+
         $id_bast = $this->input->post('id_bast');
         $id_asbuilt = $this->input->post('id_asbuilt');
+
+if (empty($id_bast) || empty($id_asbuilt)) {
+    log_message('error', 'ID kosong: id_bast / id_asbuilt');
+    $this->session->set_flashdata('error', 'ID data tidak valid');
+    redirect('user/getBAST');
+    return;
+}
+
 
         $bast_update_success = $this->Bast_model->updateBastData($id_bast, $bast_data);
         $asbuilt_update_success = $this->Bast_model->updateAsbuiltData($id_asbuilt, $asbuilt_data);
 
         log_message('debug', 'BAST Update Success: ' . $bast_update_success);
         log_message('debug', 'Asbuilt Update Success: ' . $asbuilt_update_success);
+        log_message('debug', 'ID BAST: ' . $id_bast);
 
         if ($bast_update_success && $asbuilt_update_success) {
             $this->session->set_flashdata('message', 'Data berhasil diperbarui.');
@@ -1161,10 +1303,33 @@ class User extends CI_Controller
         }
     }
 
+    /**
+     * Helper function untuk memastikan kolom created_by ada di tabel user_bast
+     */
+    private function ensure_created_by_column_bast()
+    {
+        if (!$this->db->field_exists('created_by', 'user_bast')) {
+            $this->db->query("ALTER TABLE user_bast ADD COLUMN created_by VARCHAR(100) NULL DEFAULT NULL AFTER id_bast");
+        }
+    }
+
+    /**
+     * Helper function untuk memastikan kolom created_by ada di tabel user_bast2
+     */
+    private function ensure_created_by_column_bast2()
+    {
+        if (!$this->db->field_exists('created_by', 'user_bast2')) {
+            $this->db->query("ALTER TABLE user_bast2 ADD COLUMN created_by VARCHAR(100) NULL DEFAULT NULL AFTER id_bast2");
+        }
+    }
+
     // CONTROLLER BAST 2
 
     public function getBAST2()
     {
+        // Pastikan kolom created_by ada
+        $this->ensure_created_by_column_bast2();
+
         $data['title'] = 'BAST 2';
         $data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
 
@@ -1192,6 +1357,8 @@ class User extends CI_Controller
 
     public function addBAST2()
     {
+        $user = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+
         $data = array(
             'id_bast' => $this->input->post('id_bast'),
             'tgl_pom' => $this->input->post('tgl_pom'),
@@ -1200,6 +1367,12 @@ class User extends CI_Controller
             'tgl_pusat2' => $this->input->post('tgl_pusat2'),
             'tgl_kontraktor2' => $this->input->post('tgl_kontraktor2')
         );
+
+        // Cek apakah kolom created_by ada di database
+        $fields = $this->db->list_fields('user_bast2');
+        if (in_array('created_by', $fields)) {
+            $data['created_by'] = $user['name'];
+        }
 
         if ($this->Bast2_model->addBast2Data($data)) {
             redirect('User/getBAST2');
@@ -1609,18 +1782,40 @@ class User extends CI_Controller
         // Helper function to write common data rows
         // =========================================================================
         $writeData = function ($sheet, $data, $startRow = 3) {
+            // Helper function to format date from YYYY-MM-DD to DD-MM-YYYY
+            $formatDate = function ($date_value) {
+                if (empty($date_value) || $date_value == '0000-00-00') {
+                    return '';
+                }
+                $date = new DateTime($date_value);
+                return $date->format('d-m-Y');
+            };
+
             $row = $startRow;
             foreach ($data as $item) {
                 $sheet->setCellValue('A' . $row, $item['no_kontrak']);
                 $sheet->setCellValue('B' . $row, $item['nama_pt']);
                 $sheet->setCellValue('C' . $row, $item['pekerjaan']);
-                $sheet->setCellValue('D' . $row, $item['tgl_terima_asbuilt']);
-                $sheet->setCellValue('E' . $row, $item['tgl_terima_bast']);
-                $sheet->setCellValue('F' . $row, $item['tgl_closing']);
-                $sheet->setCellValue('G' . $row, ($item['tgl_terima_bast2'] == '0000-00-00') ? '' : $item['tgl_terima_bast2']);
+                $sheet->setCellValue('D' . $row, $formatDate($item['tgl_terima_asbuilt']));
+
+// ================= KOMENTAR EXCEL ASBUILT =================
+// Ambil komentar dari field keterangan tabel user_asbuiltdrawing
+if (!empty($item['keterangan_asbuilt'])) {
+    $comment = $sheet->getComment('D' . $row);
+    $comment->setAuthor('Aplikasi Monitoring');
+    $comment->setWidth('180pt');
+    $comment->setHeight('80pt');
+    $comment->getText()->createTextRun($item['keterangan_asbuilt']);
+}
+// ==========================================================
+
+
+                $sheet->setCellValue('E' . $row, $formatDate($item['tgl_terima_bast']));
+                $sheet->setCellValue('F' . $row, $formatDate($item['tgl_closing']));
+                $sheet->setCellValue('G' . $row, $formatDate($item['tgl_terima_bast2']));
 
                 // PENGISIAN DATA KOLOM TTD BAST 2
-                $sheet->setCellValue('H' . $row, ($item['tgl_pom'] == '0000-00-00') ? '' : $item['tgl_pom']);
+                $sheet->setCellValue('H' . $row, $formatDate($item['tgl_pom']));
 
                 // MENAMBAHKAN KOMENTAR KETERANGAN2 KE KOLOM H (tgl_pom)
                 // Pastikan data 'keterangan2' ada dan tidak kosong sebelum ditambahkan
@@ -1635,8 +1830,8 @@ class User extends CI_Controller
                 }
                 // END COMMENT ADDITION
 
-                $sheet->setCellValue('I' . $row, ($item['tgl_pusat2'] == '0000-00-00') ? '' : $item['tgl_pusat2']);
-                $sheet->setCellValue('J' . $row, ($item['tgl_kontraktor2'] == '0000-00-00') ? '' : $item['tgl_kontraktor2']);
+                $sheet->setCellValue('I' . $row, $formatDate($item['tgl_pusat2']));
+                $sheet->setCellValue('J' . $row, $formatDate($item['tgl_kontraktor2']));
 
                 // Kolom K sampai M
                 $sheet->setCellValue('K' . $row, $item['opsi_retensi']);
@@ -1832,6 +2027,132 @@ class User extends CI_Controller
         } else {
             return '';
         }
+    }
+
+
+
+
+    /**
+     * Export data BAST 2 ke Excel dengan format tanggal DD-MM-YYYY
+     */
+    public function export_bast2()
+    {
+        // Load Composer autoloader
+        require_once FCPATH . 'vendor/autoload.php';
+
+        // Ambil parameter pencarian dari request
+        $search = $this->input->get('search');
+
+        // Ambil data dari model Bast2_model dengan parameter pencarian
+        if (!empty($search)) {
+            // Filter berdasarkan no_kontrak, nama_pt, atau pekerjaan
+            $bast2_data = $this->Bast2_model->getJoinedBastData();
+            $filtered_data = [];
+            foreach ($bast2_data as $item) {
+                if (stripos($item['no_kontrak'], $search) !== false || 
+                    stripos($item['nama_pt'], $search) !== false || 
+                    stripos($item['pekerjaan'], $search) !== false) {
+                    $filtered_data[] = $item;
+                }
+            }
+            $bast2_data = $filtered_data;
+        } else {
+            $bast2_data = $this->Bast2_model->getJoinedBastData();
+        }
+
+        if (empty($bast2_data)) {
+            echo 'No data found';
+            exit;
+        }
+
+        // Buat objek Spreadsheet
+        $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
+
+        // STYLE DEFINITION
+        $styleHeader = [
+            'font' => ['bold' => true],
+            'fill' => ['fillType' => PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CCCCCC']],
+            'borders' => ['outline' => ['borderStyle' => PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+            'alignment' => ['horizontal' => PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+        ];
+
+        // Set active sheet
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('BAST 2 Data');
+
+        // Tambahkan judul pada baris pertama
+        $sheet->setCellValue('A1', 'MONITORING BAST 2 (TANDA TANGAN PROSES) - PROYEK TOKYO RIVERSIDE');
+        $sheet->mergeCells('A1:L1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+
+        // Isi header kolom pada spreadsheet (Baris 2)
+        $sheet->setCellValue('A2', 'No Kontrak');
+        $sheet->setCellValue('B2', 'Nama PT');
+        $sheet->setCellValue('C2', 'Pekerjaan');
+        $sheet->setCellValue('D2', 'Tgl Terima BAST 1');
+        $sheet->setCellValue('E2', 'Retensi');
+        $sheet->setCellValue('F2', 'Tgl Terima BAST 2');
+        $sheet->setCellValue('G2', 'Tgl Kirim POM');
+        $sheet->setCellValue('H2', 'Tgl Kembali POM');
+        $sheet->setCellValue('I2', 'Tgl Kirim Kepusat');
+        $sheet->setCellValue('J2', 'Tgl Kembali Kontraktor');
+        $sheet->setCellValue('K2', 'Keterangan');
+        $sheet->setCellValue('L2', 'User Terakhir Update');
+
+        // Beri style pada header kolom
+        $sheet->getStyle('A2:L2')->applyFromArray($styleHeader);
+
+        // Mengatur lebar kolom otomatis berdasarkan konten
+        foreach (range('A', 'L') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        // Helper function to format date from YYYY-MM-DD to DD-MM-YYYY
+        $formatDate = function ($date_value) {
+            if (empty($date_value) || $date_value == '0000-00-00') {
+                return '';
+            }
+            $date = new DateTime($date_value);
+            return $date->format('d-m-Y');
+        };
+
+        // Isi data ke dalam spreadsheet (Mulai Baris 3)
+        $row = 3;
+        foreach ($bast2_data as $item) {
+            $sheet->setCellValue('A' . $row, $item['no_kontrak']);
+            $sheet->setCellValue('B' . $row, $item['nama_pt']);
+            $sheet->setCellValue('C' . $row, $item['pekerjaan']);
+            $sheet->setCellValue('D' . $row, $formatDate($item['tgl_terima_bast']));
+            $sheet->setCellValue('E' . $row, $item['opsi_retensi']);
+            $sheet->setCellValue('F' . $row, $formatDate($item['tgl_terima_bast2']));
+            $sheet->setCellValue('G' . $row, $formatDate($item['tgl_pom']));
+            $sheet->setCellValue('H' . $row, $formatDate($item['kembali_pom']));
+            $sheet->setCellValue('I' . $row, $formatDate($item['tgl_pusat2']));
+            $sheet->setCellValue('J' . $row, $formatDate($item['tgl_kontraktor2']));
+            $sheet->setCellValue('K' . $row, $item['keterangan2']);
+            $sheet->setCellValue(
+                'L' . $row,
+                $item['updated_by_bast2'] ?? 'Belum ada update'
+            );
+
+            $row++;
+        }
+
+        // Menggunakan output buffer untuk mengunduh file
+        ob_start();
+        $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
+        $xlsData = ob_get_contents();
+        ob_end_clean();
+
+        // Set header untuk force download file
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Monitoring_BAST2_' . date("Y-m-d_H-i-s") . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        // Output file Excel ke browser
+        echo $xlsData;
+        exit;
     }
 
 
@@ -2235,5 +2556,73 @@ class User extends CI_Controller
     {
         $data['finalAccount'] = $this->Fa_model->getAll(); // sesuaikan dengan model kamu
         $this->load->view('user/finalaccount_table', $data);
+    }
+
+    public function finalaccount_milenial_table()
+    {
+        $this->load->model('Kontrak_model', 'kontrak');
+        $data['milenialAccount'] = $this->kontrak->get_all();
+        $this->load->view('user/finalaccount_milenial_table', $data);
+    }
+
+    /**
+     * Fungsi untuk mengisi created_by semua tabel dengan user "Admin"
+     */
+    public function fill_created_by_all() {
+        // Cek permission - hanya admin
+        if ($this->session->userdata('role') !== 'admin') {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Hanya admin yang bisa melakukan aksi ini!'
+            ]);
+            return;
+        }
+
+        $tables = $this->input->post('tables');
+        
+        if (empty($tables)) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Pilih minimal satu tabel!'
+            ]);
+            return;
+        }
+
+        $totalAffected = 0;
+        $successTables = [];
+
+        // Update untuk setiap tabel
+        foreach ($tables as $table) {
+            // Validasi nama tabel (whitelist)
+            $allowedTables = ['user_bast', 'user_bast2', 'user_final_account', 'user_final_account_milenial'];
+            
+            if (!in_array($table, $allowedTables)) {
+                continue;
+            }
+
+            // Cek apakah kolom created_by ada
+            $fields = $this->db->list_fields($table);
+            if (!in_array('created_by', $fields)) {
+                // Jika belum ada, buat kolom terlebih dahulu
+                $this->db->query("ALTER TABLE $table ADD COLUMN created_by VARCHAR(100) AFTER id");
+            }
+
+            // Update data
+            $this->db->update($table, 
+                ['created_by' => 'Admin'], 
+                "(created_by IS NULL OR created_by = '')");
+
+            $affected = $this->db->affected_rows();
+            $totalAffected += $affected;
+            
+            $successTables[] = $table . " (" . $affected . " data)";
+        }
+
+        echo json_encode([
+            'status' => 'success',
+            'message' => '<strong>Berhasil mengisi created_by!</strong><br>' . 
+                         'Total data yang diupdate: <strong>' . $totalAffected . ' data</strong><br>' .
+                         'Tabel: ' . implode(', ', $successTables)
+        ]);
     }
 }

@@ -1,129 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Include CSS and JS dependencies -->
-    <link href="<?= base_url('assets/css/bootstrap.min.css'); ?>" rel="stylesheet">
-    <script src="<?= base_url('assets/js/jquery.min.js'); ?>"></script>
-    <script src="<?= base_url('assets/js/bootstrap.min.js'); ?>"></script>
+    <title><?= $title; ?></title>
+
+    <!-- Bootstrap & Tailwind -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- DataTables -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
 
     <style>
-        .container-fluid {
-            padding: 20px;
-            border-radius: 8px;
-            background-color: rgba(255, 255, 255, 0.9);
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            color: #1e293b;
+            padding: 5rem 1rem;
+            width: 100%;
         }
 
         .table-responsive {
-            max-width: 100%;
             overflow-x: auto;
         }
 
-        .table thead th {
-            background-color: #f8f9fa;
-            font-weight: bold;
+
+        .container-fluid {
+            background-color: #fff;
+            padding-top: 5rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
+            /* margin: auto;
+            max-width: 100%; */
+
         }
 
-        .table tbody tr {
-            background-color: rgba(255, 255, 255, 0.8);
+        /* ==== TABLE ==== */
+        #data-tabel {
+            width: 100% !important;
+            table-layout: fixed;
+            /* penting agar kolom proporsional */
         }
 
-        .table tbody tr:hover {
-            background-color: rgba(220, 220, 220, 0.8);
-        }
-
-        .modal-content {
-            background-color: rgba(255, 255, 255, 0.95);
-        }
-
-        .dataTables_filter label,
-        .dataTables_length label,
-        .dataTables_info {
+        #data-tabel thead {
+            background: linear-gradient(90deg, #3b82f6, #06b6d4) !important;
             color: white;
         }
 
-        .form-group label,
-        .modal-body label,
-        .card-title,
-        .card-body {
-            color: black;
+        #data-tabel th {
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 0.6rem;
+            font-size: 0.8rem;
         }
 
-        .modal-header {
-            background-color: #007bff;
-            color: white;
-            border-bottom: 1px solid #e5e5e5;
+        #data-tabel td {
+            padding: 0.55rem;
+            font-size: 0.85rem;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .modal-header .close {
-            color: white;
+        /* teks panjang tampil saat hover */
+        #data-tabel td:hover {
+            white-space: normal;
+            overflow: visible;
+            background-color: #e0f2fe;
+            position: relative;
+            z-index: 1;
         }
 
-        .modal-body {
-            padding: 20px;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #e5e5e5;
-        }
-
-        .modal-body ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .modal-body ul li {
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #e5e5e5;
-            border-radius: 5px;
-        }
-
-        .modal-body ul li strong {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .inactive {
-            display: none;
-        }
-
-        .modal-dialog {
-            overflow-y: auto;
-            max-height: 80vh;
-        }
-
-        body.modal-open {
-            overflow: auto;
-        }
-
-        .modal {
-            overflow: auto;
-        }
-
-        .btn {
-            pointer-events: auto;
-        }
-
-        /* Additional Styles */
-        .card-title,
-        .card-body {
-            color: #333;
-        }
-
-        .text-center {
-            text-align: center;
+        #data-tabel tbody tr:hover {
+            background-color: #f0f9ff !important;
         }
     </style>
-
 </head>
 
-<body>
-    <div class="container mt-4">
-        <div class="container-fluid" style="background-image: url('<?= base_url('assets/img/background/footer.jpg'); ?>'); background-size: cover; background-position: center;">
-            <table class="table table-bordered table-responsive">
+
+<body class="bg-gradient-to-r from-white via-cyan-100 to-cyan-400 min-h-screen">
+
+    <div class="container-fluid max-w-full">
+        <div class="table-responsive">
+            <table class="table table-bordered data-table" id="data-tabel">
                 <thead>
                     <tr>
                         <th>ID Parkir</th>
@@ -147,13 +115,16 @@
                                 <td><?php echo htmlspecialchars($parkir['nama_member'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td><?php echo htmlspecialchars($parkir['no_kendaraan'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td><?php echo htmlspecialchars($parkir['no_kartu'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td><?php echo htmlspecialchars($parkir['jenis_kendaraan'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td><?php echo htmlspecialchars($parkir['tgl_pembuatan'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($parkir['jenis_kendaraan'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($parkir['tgl_pembuatan'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                                </td>
                                 <td><?php echo htmlspecialchars($parkir['tgl_berakhir'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td><?php echo htmlspecialchars($parkir['keterangan'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td>
                                     <?php if (!empty($parkir['scan_dokumen'])) : ?>
-                                        <a href="<?= base_url('assets/upload/parkir/') . htmlspecialchars($parkir['scan_dokumen'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank">View</a>
+                                        <a href="<?= base_url('assets/upload/parkir/') . htmlspecialchars($parkir['scan_dokumen'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            target="_blank">View</a>
                                     <?php else : ?>
                                         No file
                                     <?php endif; ?>
@@ -169,6 +140,7 @@
             </table>
         </div>
     </div>
+
 </body>
 
 </html>

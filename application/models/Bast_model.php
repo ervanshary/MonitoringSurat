@@ -4,33 +4,32 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class Bast_model extends CI_Model
 {
 
-    public function getJoinedBastData()
-    {
-        $query = $this->db->query("
-           SELECT 
-    user_final_account.no_kontrak, 
-    user_final_account.nama_pt, 
-    user_final_account.pekerjaan, 
-    user_asbuiltdrawing.tgl_terima AS tanggal_terima_asbuilt,
-    user_asbuiltdrawing.status AS status_asbuilt,
-    user_bast.id_bast,
-    user_bast.keterangan AS keterangan_bast,
-    user_bast.tgl_terima_bast,
-    user_bast.tgl_pusat,
-    user_bast.tgl_kontraktor,
-    user_bast.file_pdf,
-    user_bast.opsi_retensi
-FROM 
-    user_final_account
-INNER JOIN 
-    user_asbuiltdrawing ON user_final_account.no_kontrak = user_asbuiltdrawing.no_kontrak
-INNER JOIN 
-    user_bast ON user_asbuiltdrawing.id_asbuilt = user_bast.id_asbuilt;
+   public function getJoinedBastData()
+{
+    return $this->db->select([
+            'ufa.no_kontrak',
+            'ufa.nama_pt',
+            'ufa.pekerjaan',
 
-        ");
+            'uad.id_asbuilt',
+            'uad.tgl_terima AS tanggal_terima_asbuilt',
+            'uad.status AS status_asbuilt',
 
-        return $query->result_array();
-    }
+            'ub.id_bast',
+            'ub.keterangan AS keterangan_bast',
+            'ub.tgl_terima_bast',
+            'ub.tgl_pusat',
+            'ub.tgl_kontraktor',
+            'ub.file_pdf',
+            'ub.opsi_retensi'
+        ])
+        ->from('user_final_account ufa')
+        ->join('user_asbuiltdrawing uad', 'ufa.no_kontrak = uad.no_kontrak', 'inner')
+        ->join('user_bast ub', 'uad.id_asbuilt = ub.id_asbuilt', 'inner')
+        ->get()
+        ->result_array();
+}
+
 
     public function getIdData()
     {
@@ -63,9 +62,11 @@ INNER JOIN
     {
         $this->db->insert('user_bast', $data);
         if ($this->db->affected_rows() > 0) {
+            log_message('debug', 'Data successfully inserted into user_bast');
             return true;
         } else {
-            log_message('error', 'Database insert failed: ' . $this->db->last_query());
+            $error = $this->db->error();
+            log_message('error', 'Database insert failed - Error: ' . json_encode($error) . ' - Query: ' . $this->db->last_query());
             return false;
         }
     }
@@ -176,17 +177,17 @@ INNER JOIN
     }
 
     // /////////////////////////////EDIT//////////////////////////////////////////////////////////////////////////
-    public function updateBastData($id_bast, $data)
-    {
-        $this->db->where('id_bast', $id_bast);
-        return $this->db->update('user_bast', $data);
-    }
+    // public function updateBastData($id_bast, $data)
+    // {
+    //     $this->db->where('id_bast', $id_bast);
+    //     return $this->db->update('user_bast', $data);
+    // }
 
-    public function updateAsbuiltData($id_asbuilt, $data)
-    {
-        $this->db->where('id_asbuilt', $id_asbuilt);
-        return $this->db->update('user_asbuiltdrawing', $data);
-    }
+    // public function updateAsbuiltData($id_asbuilt, $data)
+    // {
+    //     $this->db->where('id_asbuilt', $id_asbuilt);
+    //     return $this->db->update('user_asbuiltdrawing', $data);
+    // }
     public function getBastById($id)
     {
         $query = $this->db->get_where('user_bast', ['id' => $id]);
@@ -239,4 +240,31 @@ INNER JOIN
             return false;
         }
     }
+
+
+public function updateBastData($id_bast, $data)
+{
+    $this->db->where('id_bast', $id_bast);
+    $this->db->update('user_bast', $data);
+
+    log_message('debug', 'UPDATE BAST QUERY: ' . $this->db->last_query());
+    log_message('debug', 'AFFECTED ROWS BAST: ' . $this->db->affected_rows());
+
+    return $this->db->affected_rows();
+}
+
+
+public function updateAsbuiltData($id_asbuilt, $data)
+{
+    $this->db->where('id_asbuilt', $id_asbuilt);
+    $this->db->update('user_asbuiltdrawing', $data);
+
+    log_message('debug', 'UPDATE ASBUILT QUERY: ' . $this->db->last_query());
+    log_message('debug', 'AFFECTED ROWS ASBUILT: ' . $this->db->affected_rows());
+
+    return $this->db->affected_rows();
+}
+
+
+
 }

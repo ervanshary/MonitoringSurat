@@ -222,6 +222,8 @@
                         <th>Nama DC</th>
                         <th>Pekerjaan</th>
                         <th>Paket Pekerjaan</th>
+                        <th>Created By</th>
+                        <th>Updated By</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -236,6 +238,8 @@
                                 <td><?= $fa['nama_pt']; ?></td>
                                 <td><?= $fa['pekerjaan']; ?></td>
                                 <td><?= $fa['status']; ?></td>
+                                <td><?= !empty($fa['created_by']) ? $fa['created_by'] : '-'; ?></td>
+                                <td><?= !empty($fa['updated_by']) ? $fa['updated_by'] : '-'; ?></td>
                                 <td>
                                     <!-- Aksi: Detail, Edit, Delete -->
                                     <div class="flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-1">
@@ -265,7 +269,7 @@
                         endforeach; ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="6" class="text-center">Tidak ada data yang tersedia</td>
+                            <td colspan="8" class="text-center">Tidak ada data yang tersedia</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -307,6 +311,7 @@
                     <form id="editForm" action="<?= base_url('user/finalaccount_update'); ?>" method="post">
                         <div class="modal-body">
                             <input type="hidden" id="editId" name="editId">
+                            <input type="hidden" id="createdBy" name="created_by">
                             <div class="form-row">
                                 <div class="form-group col-md-6">
                                     <label>No Kontrak</label>
@@ -326,6 +331,16 @@
                                 <div class="form-group col-md-6">
                                     <label>Paket Pekerjaan</label>
                                     <input type="text" class="form-control" id="status" name="status">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Created By</label>
+                                    <input type="text" class="form-control" id="displayCreatedBy" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Updated By</label>
+                                    <input type="text" class="form-control" id="displayUpdatedBy" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                 </div>
                             </div>
                             <!-- CATATAN: Karena modal body diganti oleh loading spinner, 
@@ -373,6 +388,18 @@
                                 <div class="card p-3 shadow-sm">
                                     <h6>Paket Pekerjaan</h6>
                                     <p id="modalStatus" class="text-muted"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card p-3 shadow-sm">
+                                    <h6>Created By</h6>
+                                    <p id="modalCreatedBy" class="text-muted"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card p-3 shadow-sm">
+                                    <h6>Updated By</h6>
+                                    <p id="modalUpdatedBy" class="text-muted"></p>
                                 </div>
                             </div>
                         </div>
@@ -474,6 +501,9 @@
                             $('#editFaModal #nama_pt').val(data.nama_pt || '');
                             $('#editFaModal #pekerjaan').val(data.pekerjaan || '');
                             $('#editFaModal #status').val(data.status || '');
+                            $('#editFaModal #createdBy').val(data.created_by || '');
+                            $('#editFaModal #displayCreatedBy').val(data.created_by || '-');
+                            $('#editFaModal #displayUpdatedBy').val(data.updated_by || '-');
                         } else {
                             // Jika error dari server
                             alert(response.message || 'Data tidak ditemukan.');
@@ -494,6 +524,59 @@
 
                         alert(msg);
                         console.error('AJAX Error:', status, error, xhr.responseText);
+                    }
+                });
+            });
+
+
+            // Tombol Detail
+            $(document).on('click', '.btn-detail', function(e) {
+                e.preventDefault();
+
+                const finalAccountId = $(this).data('id');
+                const modal = $('#finalAccountDetailModal');
+
+                // Tampilkan loading spinner
+                modal.find('.modal-body').html(`
+                    <div class="text-center p-5">
+                        <i class="fas fa-spinner fa-spin fa-2x text-indigo-500"></i>
+                        <p class="mt-2">Memuat data...</p>
+                    </div>
+                `);
+
+                modal.modal('show');
+
+                // AJAX GET data
+                $.ajax({
+                    url: '<?= base_url('user/get_finalaccount_data'); ?>/' + finalAccountId,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status && response.status === 'success' && response.data) {
+                            const data = response.data;
+
+                            // Isi modal detail
+                            $('#finalAccountDetailModal #modalNoKontrak').text(data.no_kontrak || '-');
+                            $('#finalAccountDetailModal #modalNamaPT').text(data.nama_pt || '-');
+                            $('#finalAccountDetailModal #modalPekerjaan').text(data.pekerjaan || '-');
+                            $('#finalAccountDetailModal #modalStatus').text(data.status || '-');
+                            $('#finalAccountDetailModal #modalCreatedBy').text(data.created_by || '-');
+                            $('#finalAccountDetailModal #modalUpdatedBy').text(data.updated_by || '-');
+                        } else {
+                            alert(response.message || 'Data tidak ditemukan.');
+                            modal.modal('hide');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        let msg = 'Terjadi kesalahan saat mengambil data.';
+                        try {
+                            const json = JSON.parse(xhr.responseText);
+                            if (json.message) msg = json.message;
+                        } catch (e) {
+                            // Tetap tampilkan pesan default
+                        }
+                        alert(msg);
+                        modal.modal('hide');
                     }
                 });
             });
