@@ -756,8 +756,9 @@ class User extends CI_Controller
 
     public function getBAST()
     {
-        // Pastikan kolom created_by ada
+        // Pastikan kolom created_by dan is_revisi ada
         $this->ensure_created_by_column_bast();
+        $this->ensure_is_revisi_column_bast();
 
         $data['title'] = 'BAST 1';
         $data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
@@ -839,7 +840,8 @@ class User extends CI_Controller
             'id_asbuilt' => $this->input->post('id_asbuilt'),
             'tgl_terima_bast' => $this->input->post('tgl_terima_bast'),
             'keterangan' => $this->input->post('keterangan'),
-            'opsi_retensi' => $this->input->post('opsi_retensi')
+            'opsi_retensi' => $this->input->post('opsi_retensi'),
+            'is_revisi' => !empty($this->input->post('is_revisi')) ? 1 : 0
         );
 
         $data['tgl_pusat'] = !empty($this->input->post('tgl_pusat')) ? $this->input->post('tgl_pusat') : NULL;
@@ -1145,6 +1147,11 @@ class User extends CI_Controller
         log_message('debug', 'updatebast1 method accessed');
         log_message('debug', 'Post data: ' . print_r($this->input->post(), true));
 
+        // Check if this is an AJAX request
+        $is_ajax = $this->input->is_ajax_request();
+        $page = $this->input->post('page') ?: '1';
+        $search = $this->input->post('search') ?: '';
+
         $this->form_validation->set_rules('id_bast', 'ID BAST', 'required');
         $this->form_validation->set_rules('id_asbuilt', 'ID Asbuilt', 'required');
         $this->form_validation->set_rules('tgl_terima_asbuilt', 'Tanggal Terima Asbuilt');
@@ -1160,8 +1167,19 @@ class User extends CI_Controller
 
         if ($this->form_validation->run() == FALSE) {
             log_message('error', 'Form validation failed: ' . validation_errors());
+            if ($is_ajax) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode([
+                        'status' => 'error',
+                        'message' => validation_errors()
+                    ]));
+                return;
+            }
             $this->session->set_flashdata('error', validation_errors());
-            redirect('user/getBAST');
+            $redirect_url = 'user/getBAST?page=' . $page;
+            if (!empty($search)) $redirect_url .= '&search=' . urlencode($search);
+            redirect($redirect_url);
             return;
         }
 
@@ -1172,12 +1190,13 @@ class User extends CI_Controller
             'tgl_pusat' => !empty($this->input->post('tgl_pusat')) ? $this->input->post('tgl_pusat') : NULL,
             'tgl_kontraktor' => !empty($this->input->post('tgl_kontraktor')) ? $this->input->post('tgl_kontraktor') : NULL,
             'keterangan' => $this->input->post('keterangan'),
-            'opsi_retensi' => $this->input->post('opsi_retensi')
+            'opsi_retensi' => $this->input->post('opsi_retensi'),
+            'is_revisi' => !empty($this->input->post('is_revisi')) ? 1 : 0
         );
 
         $asbuilt_data = [
-    'tgl_terima' => $this->input->post('tgl_terima_asbuilt'), // Map dari form ke kolom database
-    'status'     => $this->input->post('status_asbuilt'),     // Kolom yang ada di user_asbuiltdrawing
+    'tgl_terima' => !empty($this->input->post('tgl_terima_asbuilt')) ? $this->input->post('tgl_terima_asbuilt') : NULL,
+    'status'     => !empty($this->input->post('status_asbuilt')) ? $this->input->post('status_asbuilt') : NULL,
 ];
 
 
@@ -1187,8 +1206,19 @@ class User extends CI_Controller
 
             if (!$upload_result['success']) {
                 log_message('error', 'File upload failed: ' . $upload_result['error']);
+                if ($is_ajax) {
+                    $this->output
+                        ->set_content_type('application/json')
+                        ->set_output(json_encode([
+                            'status' => 'error',
+                            'message' => 'File upload failed: ' . $upload_result['error']
+                        ]));
+                    return;
+                }
                 $this->session->set_flashdata('error', 'File upload failed: ' . $upload_result['error']);
-                redirect('user/getBAST');
+                $redirect_url = 'user/getBAST?page=' . $page;
+                if (!empty($search)) $redirect_url .= '&search=' . urlencode($search);
+                redirect($redirect_url);
                 return;
             }
 
@@ -1209,8 +1239,43 @@ class User extends CI_Controller
 
 if (empty($id_bast) || empty($id_asbuilt)) {
     log_message('error', 'ID kosong: id_bast / id_asbuilt');
+    if ($is_ajax) {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'status' => 'error',
+                'message' => 'ID data tidak valid'
+            ]));
+        return;
+    }
     $this->session->set_flashdata('error', 'ID data tidak valid');
     redirect('user/getBAST');
+    return;
+}
+
+// Validasi bahwa ID benar-benar ada di database
+$bast_exists = $this->db->get_where('user_bast', ['id_bast' => $id_bast])->num_rows();
+$asbuilt_exists = $this->db->get_where('user_asbuiltdrawing', ['id_asbuilt' => $id_asbuilt])->num_rows();
+
+if (!$bast_exists || !$asbuilt_exists) {
+    $error_msg = 'Data tidak ditemukan di database. ';
+    if (!$bast_exists) $error_msg .= 'BAST ID tidak valid. ';
+    if (!$asbuilt_exists) $error_msg .= 'Asbuilt ID tidak valid.';
+    
+    log_message('error', 'Data validation failed: ' . $error_msg);
+    if ($is_ajax) {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'status' => 'error',
+                'message' => $error_msg
+            ]));
+        return;
+    }
+    $this->session->set_flashdata('error', $error_msg);
+    $redirect_url = 'user/getBAST?page=' . $page;
+    if (!empty($search)) $redirect_url .= '&search=' . urlencode($search);
+    redirect($redirect_url);
     return;
 }
 
@@ -1222,15 +1287,46 @@ if (empty($id_bast) || empty($id_asbuilt)) {
         log_message('debug', 'Asbuilt Update Success: ' . $asbuilt_update_success);
         log_message('debug', 'ID BAST: ' . $id_bast);
 
-        if ($bast_update_success && $asbuilt_update_success) {
-            $this->session->set_flashdata('message', 'Data berhasil diperbarui.');
-        } else {
-            if (!$bast_update_success) {
-                log_message('error', 'Failed to update data in user_bast: ' . $this->db->last_query());
+        // AFFECTED ROWS bisa 0 jika tidak ada data yang berubah, tapi query tetap berhasil
+        // Jadi kita periksa apakah ada database error, bukan jumlah affected rows
+        $bast_error = $this->db->error();
+        $has_error = ($bast_error['code'] != 0);
+
+        if (!$has_error) {
+            // Tidak ada database error, update dianggap berhasil
+            $message = 'Data berhasil diperbarui.';
+            if ($is_ajax) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode([
+                        'status' => 'success',
+                        'message' => $message,
+                        'bast_rows_affected' => $bast_update_success,
+                        'asbuilt_rows_affected' => $asbuilt_update_success
+                    ]));
+                return;
             }
+            $this->session->set_flashdata('message', $message);
+        } else {
+            $error_msg = 'Gagal mengupdate data. ';
+            log_message('error', 'Database error: ' . json_encode($bast_error));
+            $error_msg .= $bast_error['message'];
+            
+            if ($is_ajax) {
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode([
+                        'status' => 'error',
+                        'message' => $error_msg
+                    ]));
+                return;
+            }
+            $this->session->set_flashdata('error', $error_msg);
         }
 
-        redirect('user/getBAST');
+        $redirect_url = 'user/getBAST?page=' . $page;
+        if (!empty($search)) $redirect_url .= '&search=' . urlencode($search);
+        redirect($redirect_url);
     }
 
     // Method untuk upload file
@@ -1314,6 +1410,16 @@ if (empty($id_bast) || empty($id_asbuilt)) {
     }
 
     /**
+     * Helper function untuk memastikan kolom is_revisi ada di tabel user_bast
+     */
+    private function ensure_is_revisi_column_bast()
+    {
+        if (!$this->db->field_exists('is_revisi', 'user_bast')) {
+            $this->db->query("ALTER TABLE user_bast ADD COLUMN is_revisi TINYINT(1) NULL DEFAULT 0");
+        }
+    }
+
+    /**
      * Helper function untuk memastikan kolom created_by ada di tabel user_bast2
      */
     private function ensure_created_by_column_bast2()
@@ -1323,12 +1429,23 @@ if (empty($id_bast) || empty($id_asbuilt)) {
         }
     }
 
+    /**
+     * Helper function untuk memastikan kolom is_revisi ada di tabel user_bast2
+     */
+    private function ensure_is_revisi_column_bast2()
+    {
+        if (!$this->db->field_exists('is_revisi', 'user_bast2')) {
+            $this->db->query("ALTER TABLE user_bast2 ADD COLUMN is_revisi TINYINT(1) NULL DEFAULT 0");
+        }
+    }
+
     // CONTROLLER BAST 2
 
     public function getBAST2()
     {
-        // Pastikan kolom created_by ada
+        // Pastikan kolom created_by dan is_revisi ada
         $this->ensure_created_by_column_bast2();
+        $this->ensure_is_revisi_column_bast2();
 
         $data['title'] = 'BAST 2';
         $data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
@@ -1337,6 +1454,8 @@ if (empty($id_bast) || empty($id_asbuilt)) {
         $data['id_asbuilts'] = $this->Bast2_model->getAllAsbuiltData();
         $data['no_kontrak'] = $this->Bast2_model->getIdData();
 
+        // Get POM yang belum dikembalikan
+        $data['pom_overdue'] = $this->getPomOverdueData();
 
         // Get reminder dates
         $this->load->model('Partial_model');
@@ -1355,6 +1474,46 @@ if (empty($id_bast) || empty($id_asbuilt)) {
         $this->load->view('templates/footer');
     }
 
+    /**
+     * Fungsi untuk mendapatkan data POM yang overdue (belum dikembalikan 7 hari atau lebih)
+     */
+    private function getPomOverdueData()
+    {
+        $pom_data = $this->Bast2_model->getPomBelumDikembalikan();
+        $overdue_list = [];
+
+        foreach ($pom_data as $data) {
+            $status = $this->Bast2_model->getStatusPom(
+                $data['tgl_pom'], 
+                $data['kembali_pom'],
+                $data['tgl_pusat2'],
+                $data['tgl_kontraktor2']
+            );
+
+            if ($status['status'] == 'OVERDUE') {
+                $overdue_list[] = array_merge($data, $status);
+            }
+        }
+
+        return $overdue_list;
+    }
+
+    /**
+     * API function untuk mendapatkan notifikasi POM via AJAX
+     */
+    public function get_pom_notification()
+    {
+        $this->load->helper('login');
+        
+        $overdue_data = $this->getPomOverdueData();
+        
+        echo json_encode([
+            'success' => true,
+            'count' => count($overdue_data),
+            'data' => $overdue_data
+        ]);
+    }
+
     public function addBAST2()
     {
         $user = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
@@ -1365,7 +1524,8 @@ if (empty($id_bast) || empty($id_asbuilt)) {
             'keterangan' => $this->input->post('keterangan'),
             'tgl_terima_bast2' => $this->input->post('tgl_terima_bast2'),
             'tgl_pusat2' => $this->input->post('tgl_pusat2'),
-            'tgl_kontraktor2' => $this->input->post('tgl_kontraktor2')
+            'tgl_kontraktor2' => $this->input->post('tgl_kontraktor2'),
+            'is_revisi' => !empty($this->input->post('is_revisi')) ? 1 : 0
         );
 
         // Cek apakah kolom created_by ada di database
@@ -1384,7 +1544,12 @@ if (empty($id_bast) || empty($id_asbuilt)) {
 
     public function update_bast2_data()
     {
+        // Ensure is_revisi column exists
+        $this->ensure_is_revisi_column_bast2();
+        
         $id_bast2 = $this->input->post('id_bast2');
+        $page = $this->input->post('page') ?: '1';
+        $search = $this->input->post('search') ?: '';
 
         $data = array(
             'tgl_terima_bast2' => $this->input->post('tgl_terima_bast2'),
@@ -1392,7 +1557,8 @@ if (empty($id_bast) || empty($id_asbuilt)) {
             'kembali_pom' => $this->input->post('kembali_pom'),
             'tgl_pusat2' => $this->input->post('tgl_pusat2'),
             'tgl_kontraktor2' => $this->input->post('tgl_kontraktor2'),
-            'keterangan2' => $this->input->post('keterangan2')
+            'keterangan2' => $this->input->post('keterangan2'),
+            'is_revisi' => !empty($this->input->post('is_revisi')) ? 1 : 0
         );
 
         // Periksa apakah file dipilih untuk diunggah
@@ -1402,26 +1568,40 @@ if (empty($id_bast) || empty($id_asbuilt)) {
                 $data['file_pdf_bast2'] = $uploadResult['file_name'];
             } else {
                 $this->session->set_flashdata('error', $uploadResult['error']);
-                redirect('User/getBAST2');
+                $redirect_url = 'User/getBAST2?page=' . $page;
+                if (!empty($search)) $redirect_url .= '&search=' . urlencode($search);
+                redirect($redirect_url);
                 return;
+            }
+        }
+
+        // Add updated_by if column exists
+        if ($this->db->field_exists('updated_by', 'user_bast2')) {
+            $user_info = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+            if ($user_info) {
+                $data['updated_by'] = $user_info['name'];
             }
         }
 
         log_message('debug', 'ID BAST2: ' . $id_bast2);
         log_message('debug', 'Data to update: ' . print_r($data, true));
+        log_message('debug', 'Redirect - page: ' . $page . ', search: ' . $search);
 
         if ($this->Bast2_model->updateBast2Data($id_bast2, $data)) {
             log_message('debug', 'Update successful for ID BAST2: ' . $id_bast2);
             $this->session->set_flashdata('message', 'Data berhasil diupdate!');
-            redirect('User/getBAST2');
+            $redirect_url = 'User/getBAST2?page=' . $page;
+            if (!empty($search)) $redirect_url .= '&search=' . urlencode($search);
+            log_message('debug', 'Redirecting to: ' . $redirect_url);
+            redirect($redirect_url);
         } else {
             log_message('error', 'Update failed for ID BAST2: ' . $id_bast2);
             $this->session->set_flashdata('error', 'Gagal mengupdate data.');
-            redirect('User/getBAST2');
+            $redirect_url = 'User/getBAST2?page=' . $page;
+            if (!empty($search)) $redirect_url .= '&search=' . urlencode($search);
+            redirect($redirect_url);
         }
     }
-
-
 
 
     public function get_bast2_data()
@@ -1706,6 +1886,7 @@ if (empty($id_bast) || empty($id_asbuilt)) {
         $search = $this->input->get('search');
 
         // Ambil data dari model Laporan_model dengan parameter pencarian
+        // Data sudah termasuk keterangan yang tepat dari generateKeterangan() di model
         if (!empty($search)) {
             $laporan = $this->Laporan_model->getFilteredLaporanData($search);
         } else {
@@ -1716,16 +1897,52 @@ if (empty($id_bast) || empty($id_asbuilt)) {
         // 1. HITUNG KETERANGAN DAN RINGKASAN (SUMMARY)
         // =========================================================================
         $summary = [];
-        // Loop untuk menghitung keterangan dan mengisi array summary
+        // Loop untuk menghitung keterangan dari data model
         foreach ($laporan as &$item) {
-            // Panggil fungsi logika keterangan yang sudah Anda definisikan
-            $keterangan = $this->generateKeterangan($item);
-            $item['keterangan'] = $keterangan;
+            // Gunakan keterangan yang sudah di-generate oleh model
+            $keterangan = $item['keterangan'];
+
+            // LOGIKA: Jika keterangan dimulai dengan "BAST 1 sudah di terima", gabungkan semua menjadi satu sheet
+            // dengan key "BAST 1 sudah diterima" (tanpa detail detailnya)
+            if (strpos($keterangan, 'BAST 1 sudah di terima') === 0) {
+                $kategoriKeterangan = 'BAST 1 sudah diterima';
+            } else {
+                $kategoriKeterangan = $keterangan;
+            }
 
             // Hitung jumlah untuk ringkasan
-            $summary[$keterangan] = ($summary[$keterangan] ?? 0) + 1;
+            $summary[$kategoriKeterangan] = ($summary[$kategoriKeterangan] ?? 0) + 1;
         }
         unset($item); // Bersihkan referensi
+
+        // =========================================================================
+        // ATUR URUTAN SUMMARY SESUAI PRIORITAS
+        // =========================================================================
+        $urutanKeterangan = [
+            'Belum BAST 1 / asbuilt belum diajukan',
+            'BAST 1 sudah diterima',
+            'BAST 2 belum diajukan / masih dalam masa retensi',
+            'Masa retensi habis, segera ajukan BAST 2',
+            'Revisi BAST 2 dikembalikan ke kontraktor',
+            'DONE'
+        ];
+
+        // Buat summary baru dengan urutan yang benar
+        $summaryOrdered = [];
+        foreach ($urutanKeterangan as $keterangan) {
+            if (isset($summary[$keterangan])) {
+                $summaryOrdered[$keterangan] = $summary[$keterangan];
+            }
+        }
+        
+        // Tambahkan keterangan yang tidak ada di urutan (jika ada)
+        foreach ($summary as $keterangan => $count) {
+            if (!isset($summaryOrdered[$keterangan])) {
+                $summaryOrdered[$keterangan] = $count;
+            }
+        }
+        
+        $summary = $summaryOrdered;
 
         if (empty($laporan)) {
             echo 'No data found'; // Menampilkan pesan jika tidak ada data ditemukan
@@ -1907,8 +2124,13 @@ if (!empty($item['keterangan_asbuilt'])) {
             $sheet->setTitle($safeTitle);
 
             // Filter data untuk status saat ini
+            // Logika khusus: Jika status adalah "BAST 1 sudah diterima", include semua keterangan yang dimulai dengan "BAST 1 sudah di terima"
             $filteredData = array_filter($laporan, function ($item) use ($status) {
-                return $item['keterangan'] === $status;
+                if ($status === 'BAST 1 sudah diterima') {
+                    return strpos($item['keterangan'], 'BAST 1 sudah di terima') === 0;
+                } else {
+                    return $item['keterangan'] === $status;
+                }
             });
 
             // Tulis Judul (Baris 1)
@@ -1949,6 +2171,433 @@ if (!empty($item['keterangan_asbuilt'])) {
         exit;
     }
 
+    public function export_report_bast1()
+    {
+        // Load Composer autoloader
+        require_once FCPATH . 'vendor/autoload.php';
+
+        // Ambil parameter pencarian dari request
+        $search = $this->input->get('search');
+
+        // Ambil data dari model Laporan_model dengan parameter pencarian
+        if (!empty($search)) {
+            $laporan = $this->Laporan_model->getFilteredLaporanData($search);
+        } else {
+            $laporan = $this->Laporan_model->getLaporanData();
+        }
+
+        // Filter data HANYA BAST 1: Include semua data yang belum masuk BAST 2
+        $is_date_filled = function ($date_value) {
+            return !empty($date_value) && $date_value != '0000-00-00';
+        };
+        
+        $laporan = array_filter($laporan, function ($item) use ($is_date_filled) {
+            // Include semua data yang BELUM masuk ke BAST 2
+            // Exclude hanya yang sudah masuk BAST 2 (tgl_terima_bast2 terisi)
+            return !$is_date_filled($item['tgl_terima_bast2']);
+        });
+
+        // =========================================================================
+        // 1. HITUNG KETERANGAN DAN RINGKASAN (SUMMARY) - BAST1 BERDASARKAN TTD
+        // =========================================================================
+        $summary = [];
+        
+        // Helper untuk cek tanggal
+        $isDateFilled = function ($date_value) {
+            return !empty($date_value) && $date_value != '0000-00-00';
+        };
+        
+        foreach ($laporan as &$item) {
+            $keterangan = $item['keterangan'];
+            
+            // Logika kategori BAST 1 berdasarkan status TTD
+            if (strpos($keterangan, 'BAST 1 sudah di terima') === 0) {
+                // BAST 1 sudah diterima - cek proses TTD
+                if ($isDateFilled($item['tgl_kontraktor_bast1'])) {
+                    $kategoriKeterangan = 'DONE';
+                } elseif ($isDateFilled($item['tgl_pusat_bast1'])) {
+                    $kategoriKeterangan = 'Kirim Pusat';
+                } else {
+                    $kategoriKeterangan = 'TTD PM';
+                }
+            } else {
+                $kategoriKeterangan = $keterangan;
+            }
+            
+            $summary[$kategoriKeterangan] = ($summary[$kategoriKeterangan] ?? 0) + 1;
+        }
+        unset($item);
+
+        // =========================================================================
+        // ATUR URUTAN SUMMARY SESUAI PRIORITAS
+        // =========================================================================
+        $urutanKeterangan = [
+            'Belum BAST 1 / asbuilt belum diajukan',
+            'Ajukan Final Account terlebih dahulu',
+            'BAST 2 belum diajukan / masih dalam masa retensi',
+            'Masa retensi habis, segera ajukan BAST 2',
+            'TTD PM',
+            'Kirim Pusat',
+            'DONE'
+        ];
+
+        $summaryOrdered = [];
+        foreach ($urutanKeterangan as $keterangan) {
+            if (isset($summary[$keterangan])) {
+                $summaryOrdered[$keterangan] = $summary[$keterangan];
+            }
+        }
+        
+        foreach ($summary as $keterangan => $count) {
+            if (!isset($summaryOrdered[$keterangan])) {
+                $summaryOrdered[$keterangan] = $count;
+            }
+        }
+        
+        $summary = $summaryOrdered;
+
+        if (empty($laporan)) {
+            echo 'No BAST 1 data found';
+            exit;
+        }
+
+        // Buat objek Spreadsheet
+        $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
+
+        $styleHeader = [
+            'font' => ['bold' => true],
+            'fill' => ['fillType' => PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CCCCCC']],
+            'borders' => ['outline' => ['borderStyle' => PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+            'alignment' => ['horizontal' => PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+        ];
+
+        $writeHeaders = function ($sheet) use ($styleHeader) {
+            $sheet->setCellValue('A2', 'No Kontrak');
+            $sheet->setCellValue('B2', 'Nama PT');
+            $sheet->setCellValue('C2', 'Pekerjaan');
+            $sheet->setCellValue('D2', 'Tanggal Terima Asbuilt');
+            $sheet->setCellValue('E2', 'Tanggal Terima BAST 1');
+            $sheet->setCellValue('F2', 'Tanggal Final Account');
+            $sheet->setCellValue('G2', 'Retensi');
+            $sheet->setCellValue('H2', 'Keterangan');
+            $sheet->setCellValue('I2', 'User Terakhir Update');
+
+            $sheet->getStyle('A2:I2')->applyFromArray($styleHeader);
+
+            foreach (range('A', 'I') as $columnID) {
+                $sheet->getColumnDimension($columnID)->setAutoSize(true);
+            }
+        };
+
+        $writeData = function ($sheet, $data, $startRow = 3) {
+            $formatDate = function ($date_value) {
+                if (empty($date_value) || $date_value == '0000-00-00') {
+                    return '';
+                }
+                $date = new DateTime($date_value);
+                return $date->format('d-m-Y');
+            };
+
+            $row = $startRow;
+            foreach ($data as $item) {
+                $sheet->setCellValue('A' . $row, $item['no_kontrak']);
+                $sheet->setCellValue('B' . $row, $item['nama_pt']);
+                $sheet->setCellValue('C' . $row, $item['pekerjaan']);
+                $sheet->setCellValue('D' . $row, $formatDate($item['tgl_terima_asbuilt']));
+                $sheet->setCellValue('E' . $row, $formatDate($item['tgl_terima_bast']));
+                $sheet->setCellValue('F' . $row, $formatDate($item['tgl_closing']));
+                $sheet->setCellValue('G' . $row, $item['opsi_retensi']);
+                $sheet->setCellValue('H' . $row, $item['keterangan']);
+                $sheet->setCellValue('I' . $row, 
+                    $item['updated_by_closing'] ??
+                    $item['updated_by_bast'] ??
+                    $item['updated_by_asbuilt'] ??
+                    'Belum ada update'
+                );
+                $row++;
+            }
+            return $row;
+        };
+
+        // Sheet Keseluruhan
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Keseluruhan');
+        $sheet->setCellValue('A1', 'MONITORING BAST 1 - TOKYO RIVERSIDE');
+        $sheet->mergeCells('A1:I1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+
+        $writeHeaders($sheet);
+        $nextRow = $writeData($sheet, $laporan, 3);
+
+        // Summary
+        $summaryRow = $nextRow + 2;
+        $sheet->setCellValue('A' . $summaryRow, 'RINGKASAN STATUS KONTRAK');
+        $sheet->mergeCells('A' . $summaryRow . ':B' . $summaryRow);
+        $sheet->getStyle('A' . $summaryRow)->getFont()->setBold(true)->setSize(12);
+
+        $summaryRow++;
+        $sheet->setCellValue('A' . $summaryRow, 'Status Keterangan');
+        $sheet->setCellValue('B' . $summaryRow, 'Jumlah Kontrak');
+        $sheet->getStyle('A' . $summaryRow . ':B' . $summaryRow)->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => ['fillType' => PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D9E3F0']],
+            'borders' => ['outline' => ['borderStyle' => PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+        ]);
+
+        $summaryRow++;
+        foreach ($summary as $status => $count) {
+            $sheet->setCellValue('A' . $summaryRow, $status);
+            $sheet->setCellValue('B' . $summaryRow, $count);
+            $summaryRow++;
+        }
+
+        // Per-status sheets
+        $sheetIndex = 1;
+        
+        // Helper function
+        $isDateFilled = function ($date_value) {
+            return !empty($date_value) && $date_value != '0000-00-00';
+        };
+        
+        foreach ($summary as $status => $count) {
+            $spreadsheet->createSheet();
+            $sheet = $spreadsheet->setActiveSheetIndex($sheetIndex);
+            $safeTitle = substr(str_replace(['/', '\\', '?', '*', '[', ']', ':', ' '], '_', $status), 0, 31);
+            $sheet->setTitle($safeTitle);
+
+            // Filter logic untuk kategori BAST 1
+            $filteredData = array_filter($laporan, function ($item) use ($status, $isDateFilled) {
+                if ($status === 'DONE') {
+                    return strpos($item['keterangan'], 'BAST 1 sudah di terima') === 0 && $isDateFilled($item['tgl_kontraktor_bast1']);
+                } elseif ($status === 'Kirim Pusat') {
+                    return strpos($item['keterangan'], 'BAST 1 sudah di terima') === 0 && $isDateFilled($item['tgl_pusat_bast1']) && !$isDateFilled($item['tgl_kontraktor_bast1']);
+                } elseif ($status === 'TTD PM') {
+                    return strpos($item['keterangan'], 'BAST 1 sudah di terima') === 0 && !$isDateFilled($item['tgl_pusat_bast1']) && !$isDateFilled($item['tgl_kontraktor_bast1']);
+                } else {
+                    return $item['keterangan'] === $status;
+                }
+            });
+
+            $sheet->setCellValue('A1', 'MONITORING BAST 1 - STATUS: ' . $status);
+            $sheet->mergeCells('A1:I1');
+            $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+            $writeHeaders($sheet);
+            $writeData($sheet, $filteredData, 3);
+
+            $sheetIndex++;
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        ob_start();
+        $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
+        $xlsData = ob_get_contents();
+        ob_end_clean();
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Monitoring_BAST1_' . date("Y-m-d_H-i-s") . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        echo $xlsData;
+        exit;
+    }
+
+    public function export_report_bast2()
+    {
+        // Load Composer autoloader
+        require_once FCPATH . 'vendor/autoload.php';
+
+        // Ambil parameter pencarian dari request
+        $search = $this->input->get('search');
+
+        // Ambil data dari model Laporan_model dengan parameter pencarian
+        if (!empty($search)) {
+            $laporan = $this->Laporan_model->getFilteredLaporanData($search);
+        } else {
+            $laporan = $this->Laporan_model->getLaporanData();
+        }
+
+        // Filter data HANYA BAST 2: Jika tgl_terima_bast2 terisi (berarti BAST 2 sudah ada)
+        $is_date_filled = function ($date_value) {
+            return !empty($date_value) && $date_value != '0000-00-00';
+        };
+        
+        $laporan = array_filter($laporan, function ($item) use ($is_date_filled) {
+            // Include hanya jika tgl_terima_bast2 terisi (BAST 2 ada)
+            return $is_date_filled($item['tgl_terima_bast2']);
+        });
+
+        // =========================================================================
+        // 1. HITUNG KETERANGAN DAN RINGKASAN (SUMMARY) - BAST2 SEMUA KATEGORI
+        // =========================================================================
+        $summary = [];
+        foreach ($laporan as &$item) {
+            $keterangan = $item['keterangan'];
+            $summary[$keterangan] = ($summary[$keterangan] ?? 0) + 1;
+        }
+        unset($item);
+
+        // =========================================================================
+        // ATUR URUTAN SUMMARY SESUAI PRIORITAS
+        // =========================================================================
+        $urutanKeterangan = [
+            'BAST 2 belum diajukan / masih dalam masa retensi',
+            'Masa retensi habis, segera ajukan BAST 2',
+            'Proses TTD POM',
+            'BAST 2 Proses TTD di Pusat',
+            'Proses TTD CM atau PM',
+            'Revisi BAST 2 dikembalikan ke kontraktor',
+            'DONE'
+        ];
+
+        $summaryOrdered = [];
+        foreach ($urutanKeterangan as $keterangan) {
+            if (isset($summary[$keterangan])) {
+                $summaryOrdered[$keterangan] = $summary[$keterangan];
+            }
+        }
+        
+        foreach ($summary as $keterangan => $count) {
+            if (!isset($summaryOrdered[$keterangan])) {
+                $summaryOrdered[$keterangan] = $count;
+            }
+        }
+        
+        $summary = $summaryOrdered;
+
+        if (empty($laporan)) {
+            echo 'No BAST 2 data found';
+            exit;
+        }
+
+        // Buat objek Spreadsheet
+        $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
+
+        $styleHeader = [
+            'font' => ['bold' => true],
+            'fill' => ['fillType' => PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CCCCCC']],
+            'borders' => ['outline' => ['borderStyle' => PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+            'alignment' => ['horizontal' => PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+        ];
+
+        $writeHeaders = function ($sheet) use ($styleHeader) {
+            $sheet->setCellValue('A2', 'No Kontrak');
+            $sheet->setCellValue('B2', 'Nama PT');
+            $sheet->setCellValue('C2', 'Pekerjaan');
+            $sheet->setCellValue('D2', 'Tanggal Terima BAST 2');
+            $sheet->setCellValue('E2', 'Tanggal Kirim POM');
+            $sheet->setCellValue('F2', 'Tanggal Kirim Ke Pusat');
+            $sheet->setCellValue('G2', 'Tanggal Kembali Kontraktor');
+            $sheet->setCellValue('H2', 'Keterangan');
+            $sheet->setCellValue('I2', 'User Terakhir Update');
+
+            $sheet->getStyle('A2:I2')->applyFromArray($styleHeader);
+
+            foreach (range('A', 'I') as $columnID) {
+                $sheet->getColumnDimension($columnID)->setAutoSize(true);
+            }
+        };
+
+        $writeData = function ($sheet, $data, $startRow = 3) {
+            $formatDate = function ($date_value) {
+                if (empty($date_value) || $date_value == '0000-00-00') {
+                    return '';
+                }
+                $date = new DateTime($date_value);
+                return $date->format('d-m-Y');
+            };
+
+            $row = $startRow;
+            foreach ($data as $item) {
+                $sheet->setCellValue('A' . $row, $item['no_kontrak']);
+                $sheet->setCellValue('B' . $row, $item['nama_pt']);
+                $sheet->setCellValue('C' . $row, $item['pekerjaan']);
+                $sheet->setCellValue('D' . $row, $formatDate($item['tgl_terima_bast2']));
+                $sheet->setCellValue('E' . $row, $formatDate($item['tgl_pom']));
+                $sheet->setCellValue('F' . $row, $formatDate($item['tgl_pusat2']));
+                $sheet->setCellValue('G' . $row, $formatDate($item['tgl_kontraktor2']));
+                $sheet->setCellValue('H' . $row, $item['keterangan']);
+                $sheet->setCellValue('I' . $row, 
+                    $item['updated_by_bast2'] ??
+                    $item['updated_by_closing'] ??
+                    'Belum ada update'
+                );
+                $row++;
+            }
+            return $row;
+        };
+
+        // Sheet Keseluruhan
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Keseluruhan');
+        $sheet->setCellValue('A1', 'MONITORING BAST 2 - TOKYO RIVERSIDE');
+        $sheet->mergeCells('A1:I1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+
+        $writeHeaders($sheet);
+        $nextRow = $writeData($sheet, $laporan, 3);
+
+        // Summary
+        $summaryRow = $nextRow + 2;
+        $sheet->setCellValue('A' . $summaryRow, 'RINGKASAN STATUS KONTRAK');
+        $sheet->mergeCells('A' . $summaryRow . ':B' . $summaryRow);
+        $sheet->getStyle('A' . $summaryRow)->getFont()->setBold(true)->setSize(12);
+
+        $summaryRow++;
+        $sheet->setCellValue('A' . $summaryRow, 'Status Keterangan');
+        $sheet->setCellValue('B' . $summaryRow, 'Jumlah Kontrak');
+        $sheet->getStyle('A' . $summaryRow . ':B' . $summaryRow)->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => ['fillType' => PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D9E3F0']],
+            'borders' => ['outline' => ['borderStyle' => PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+        ]);
+
+        $summaryRow++;
+        foreach ($summary as $status => $count) {
+            $sheet->setCellValue('A' . $summaryRow, $status);
+            $sheet->setCellValue('B' . $summaryRow, $count);
+            $summaryRow++;
+        }
+
+        // Per-status sheets
+        $sheetIndex = 1;
+        foreach ($summary as $status => $count) {
+            $spreadsheet->createSheet();
+            $sheet = $spreadsheet->setActiveSheetIndex($sheetIndex);
+            $safeTitle = substr(str_replace(['/', '\\', '?', '*', '[', ']', ':', ' '], '_', $status), 0, 31);
+            $sheet->setTitle($safeTitle);
+
+            $filteredData = array_filter($laporan, function ($item) use ($status) {
+                // Filter untuk semua kategori BAST 2
+                return $item['keterangan'] === $status;
+            });
+
+            $sheet->setCellValue('A1', 'MONITORING BAST 2 - STATUS: ' . $status);
+            $sheet->mergeCells('A1:I1');
+            $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+            $writeHeaders($sheet);
+            $writeData($sheet, $filteredData, 3);
+
+            $sheetIndex++;
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        ob_start();
+        $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
+        $xlsData = ob_get_contents();
+        ob_end_clean();
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Monitoring_BAST2_' . date("Y-m-d_H-i-s") . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        echo $xlsData;
+        exit;
+    }
+
     /**
      * Menghitung status keterangan kontrak berdasarkan tanggal-tanggal BAST dan TTD.
      *
@@ -1963,6 +2612,13 @@ if (!empty($item['keterangan_asbuilt'])) {
             $date = $date_value ?? null;
             return !empty($date) && $date != '0000-00-00';
         };
+
+        // =========================================================================
+        // LOGIKA REVISI (JIKA ADA CENTANG REVISI ATAU FLAG REVISI = 1)
+        // =========================================================================
+        if (!empty($row['is_revisi']) && $row['is_revisi'] == 1) {
+            return 'Revisi dikembalikan ke kontraktor';
+        }
 
         // Ambil status tanggal-tanggal penting
         $tgl_kontraktor2 = $is_date_filled($row['tgl_kontraktor2'] ?? null);

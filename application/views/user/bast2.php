@@ -36,51 +36,89 @@
     /* ======== TABEL ======== */
     #data-tabel {
         width: 100% !important;
-        table-layout: fixed;
-        /* penting agar kolom proporsional */
+        border-collapse: collapse;
     }
 
     #data-tabel thead {
         background: linear-gradient(90deg, #3b82f6, #06b6d4) !important;
         color: #ffffff !important;
+        position: sticky;
+        top: 0;
+        z-index: 10;
     }
 
     #data-tabel thead th {
         font-weight: 600;
         text-transform: uppercase;
-        padding: 0.6rem;
-        font-size: 0.8rem;
+        padding: 0.75rem !important;
+        font-size: 0.8rem !important;
+        line-height: 1.2;
+        text-align: left;
+        white-space: normal;
+        word-wrap: break-word;
     }
 
     #data-tabel td {
-        padding: 0.55rem;
+        padding: 0.65rem !important;
         font-size: 0.85rem;
         color: #1e293b !important;
         border: 1px solid #e2e8f0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        line-height: 1.4;
+        vertical-align: middle;
     }
 
     /* tampil penuh saat hover */
-    #data-tabel td:hover {
-        white-space: normal;
-        overflow: visible;
-        background-color: #e0f2fe;
-        position: relative;
-        z-index: 1;
-    }
-
     #data-tabel tbody tr:hover {
         background-color: #f0f9ff !important;
     }
 
-    /* kolom teks panjang */
-    #data-tabel th:nth-child(4),
-    #data-tabel td:nth-child(4) {
-        max-width: 200px;
-        min-width: 200px;
+    #data-tabel td:hover {
+        background-color: #e0f2fe;
     }
+
+    /* Set column widths untuk lebih proporsional */
+    #data-tabel th:nth-child(1), 
+    #data-tabel td:nth-child(1) { width: 5%; min-width: 50px; }
+    
+    #data-tabel th:nth-child(2), 
+    #data-tabel td:nth-child(2) { width: 10%; min-width: 120px; }
+    
+    #data-tabel th:nth-child(3), 
+    #data-tabel td:nth-child(3) { width: 12%; min-width: 120px; }
+    
+    #data-tabel th:nth-child(4), 
+    #data-tabel td:nth-child(4) { width: 14%; min-width: 150px; }
+    
+    #data-tabel th:nth-child(5),
+    #data-tabel th:nth-child(6),
+    #data-tabel th:nth-child(7),
+    #data-tabel th:nth-child(8),
+    #data-tabel th:nth-child(9),
+    #data-tabel th:nth-child(10),
+    #data-tabel th:nth-child(11),
+    #data-tabel td:nth-child(5),
+    #data-tabel td:nth-child(6),
+    #data-tabel td:nth-child(7),
+    #data-tabel td:nth-child(8),
+    #data-tabel td:nth-child(9),
+    #data-tabel td:nth-child(10),
+    #data-tabel td:nth-child(11) { width: 8%; min-width: 100px; }
+    
+    #data-tabel th:nth-child(12), 
+    #data-tabel td:nth-child(12) { width: 10%; min-width: 100px; }
+    
+    #data-tabel th:nth-child(13), 
+    #data-tabel td:nth-child(13) { width: 8%; min-width: 100px; }
+    
+    #data-tabel th:nth-child(14),
+    #data-tabel th:nth-child(15),
+    #data-tabel th:nth-child(16),
+    #data-tabel td:nth-child(14),
+    #data-tabel td:nth-child(15),
+    #data-tabel td:nth-child(16) { width: 7%; min-width: 80px; }
+    
+    #data-tabel th:nth-child(17), 
+    #data-tabel td:nth-child(17) { width: 9%; min-width: 100px; }
 
     /* ======== DataTables control ======== */
     .dataTables_wrapper .dataTables_filter input,
@@ -115,11 +153,11 @@
     /* ===== BUTTONS CERAH ===== */
     .btn-3d {
         position: relative;
-        padding: 0.4rem 0.8rem;
-        font-size: 0.75rem;
+        padding: 0.5rem 0.9rem;
+        font-size: 0.85rem;
         font-weight: 600;
         text-transform: uppercase;
-        border-radius: 0.5rem;
+        border-radius: 0.4rem;
         transition: all 0.2s ease;
         top: 0;
         color: #fff !important;
@@ -128,34 +166,54 @@
         justify-content: center;
         line-height: 1;
         border: none;
+        white-space: nowrap;
+        min-width: fit-content;
+    }
+
+    .btn-3d i {
+        margin-right: 0.4rem;
+        font-size: 0.8rem;
     }
 
     .btn-3d.btn-teal {
         background-color: #14b8a6;
-        box-shadow: 0 3px 0 #0f766e;
+        box-shadow: 0 2px 0 #0f766e;
     }
 
     .btn-3d.btn-teal:hover {
         background-color: #0d9488;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 0 #0f766e;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 0 #0f766e;
     }
 
     .btn-3d.btn-indigo {
         background-color: #4f46e5;
-        box-shadow: 0 3px 0 #3730a3;
+        box-shadow: 0 2px 0 #3730a3;
     }
 
     .btn-3d.btn-indigo:hover {
         background-color: #4338ca;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 0 #3730a3;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 0 #3730a3;
     }
 
     .btn-3d:active {
-        top: 2px;
+        top: 1px;
         transform: translateY(0);
         box-shadow: none !important;
+    }
+
+    /* Action cell buttons layout */
+    .action-buttons {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .action-buttons .btn-3d {
+        flex-shrink: 0;
     }
     </style>
 </head>
@@ -184,13 +242,70 @@
         <?php if ($this->session->userdata('role') == 'admin') : ?>
         <div class="alert alert-info alert-dismissible fade show" role="alert">
             <i class="fas fa-info-circle mr-2"></i>
-            <strong>Admin Tools:</strong> 
+            <strong>Admin Tools:</strong>
             <button type="button" class="btn btn-sm btn-warning" id="btnFillCreatedBy">
                 <i class="fas fa-edit mr-1"></i> Isi Created By Data Lama
             </button>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
+        </div>
+        <?php endif; ?>
+
+        <!-- === NOTIFIKASI POM YANG BELUM DIKEMBALIKAN (OVERDUE) === -->
+        <?php if (!empty($pom_overdue) && count($pom_overdue) > 0) : ?>
+        <div class="bg-red-100 border-l-4 border-red-600 p-4 mb-6 rounded-lg shadow-lg">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-circle text-red-600 text-2xl mt-1"></i>
+                </div>
+                <div class="ml-4 flex-1">
+                    <h4 class="text-xl font-bold text-red-800 mb-3">
+                        <i class="fas fa-clock mr-2"></i>PERHATIAN: POM BELUM DIKEMBALIKAN
+                    </h4>
+                    <p class="text-red-700 text-sm font-semibold mb-3">
+                        Terdapat <?= count($pom_overdue); ?> dokumen BAST 2 yang belum dikembalikan dari POM dan sudah
+                        melewati 7 hari!
+                    </p>
+                    <div class="space-y-2">
+                        <?php foreach ($pom_overdue as $item) : ?>
+                        <div class="bg-white border border-red-300 rounded-lg p-3">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <p class="font-bold text-gray-800">
+                                        <i class="fas fa-file-contract text-red-600 mr-2"></i>
+                                        <?= $item['no_kontrak']; ?>
+                                    </p>
+                                    <p class="text-sm text-gray-700 mt-1">
+                                        <strong>PT:</strong> <?= $item['nama_pt']; ?>
+                                    </p>
+                                    <p class="text-sm text-gray-700">
+                                        <strong>Pekerjaan:</strong> <?= $item['pekerjaan']; ?>
+                                    </p>
+                                    <p class="text-sm text-gray-700">
+                                        <strong>Tanggal Kirim POM:</strong>
+                                        <?= date('d-m-Y', strtotime($item['tgl_pom'])); ?>
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <span
+                                        class="inline-block bg-red-600 text-white text-xs font-bold py-2 px-3 rounded-full">
+                                        OVERDUE
+                                    </span>
+                                    <p class="text-red-800 font-bold text-lg mt-2">
+                                        <?= $item['hari_terlewat']; ?> HARI
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <button type="button" class="text-red-600 opacity-70 hover:opacity-100 focus:outline-none"
+                    onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
         </div>
         <?php endif; ?>
 
@@ -218,7 +333,7 @@
         <?php endif; ?>
 
         <!-- Table Section -->
-        <div class="overflow-x-auto shadow-xl rounded-xl">
+        <div class="overflow-x-auto shadow-xl rounded-xl" style="max-height: 800px; overflow-y: auto;">
             <table class="min-w-full text-sm text-left text-gray-700 bg-white border-collapse" id="data-tabel">
                 <!-- Table Header: Indigo background with white text -->
                 <thead>
@@ -227,14 +342,15 @@
                         <th scope="col" class="py-3 px-3">No Kontrak</th>
                         <th scope="col" class="py-3 px-3">Nama PT</th>
                         <th scope="col" class="py-3 px-3">Pekerjaan</th>
-                        <th scope="col" class="py-3 px-3">Tgl Terima BAST 1</th>
+                        <th scope="col" class="py-3 px-3">Tgl Terima<br/>BAST 1</th>
                         <th scope="col" class="py-3 px-3 text-center">Retensi</th>
-                        <th scope="col" class="py-3 px-3">Tgl Terima BAST 2</th>
-                        <th scope="col" class="py-3 px-3">Tgl kirim POM</th>
-                        <th scope="col" class="py-3 px-3">Tgl kembali POM</th>
-                        <th scope="col" class="py-3 px-3">Tgl Kirim Kepusat</th>
+                        <th scope="col" class="py-3 px-3">Tgl Terima<br/>BAST 2</th>
+                        <th scope="col" class="py-3 px-3">Tgl Kirim<br/>POM</th>
+                        <th scope="col" class="py-3 px-3">Tgl Kembali<br/>POM</th>
+                        <th scope="col" class="py-3 px-3">Tgl Kirim<br/>Kepusat</th>
                         <th scope="col" class="py-3 px-3">Tgl Kembali</th>
                         <th scope="col" class="py-3 px-3">Keterangan</th>
+                        <th scope="col" class="py-3 px-3">Status<br/>Revisi</th>
                         <th scope="col" class="py-3 px-3">File PDF</th>
                         <th scope="col" class="py-3 px-3">Created By</th>
                         <th scope="col" class="py-3 px-3">Updated By</th>
@@ -277,6 +393,17 @@
                         <td class="py-2 px-3 truncate max-w-[100px]" data-toggle="tooltip"
                             title="<?= $data['keterangan2']; ?>"><?= $data['keterangan2']; ?></td>
                         <td class="py-2 px-3 text-center">
+                            <?php if (!empty($data['is_revisi_bast2']) && $data['is_revisi_bast2'] == 1) : ?>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                    <i class="fas fa-exclamation-circle mr-1"></i> Revisi
+                                </span>
+                            <?php else : ?>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i> Normal
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="py-2 px-3 text-center">
                             <a href="<?= base_url('assets/upload/bast2/' . $data['file_pdf_bast2']); ?>" target="_blank"
                                 class="text-indigo-600 hover:text-indigo-800 text-lg transition duration-150">
                                 <i class="fas fa-file-pdf"></i>
@@ -290,43 +417,48 @@
                             title="<?= !empty($data['updated_by_bast2']) ? $data['updated_by_bast2'] : '-'; ?>">
                             <?= !empty($data['updated_by_bast2']) ? $data['updated_by_bast2'] : '-'; ?>
                         </td>
-                        <!-- Action Buttons: Ensured responsiveness with flex/col/row -->
-                        <td
-                            class="py-2 px-3 space-y-1 md:space-y-0 md:space-x-1 flex flex-col md:flex-row items-center justify-center">
-                            <button type="button"
-                                class="btn-3d btn-teal text-white transition text-xs py-1 px-2 btn-detail"
-                                data-toggle="modal" data-target="#detailModal2"
-                                data-nokontrak="<?= $data['no_kontrak']; ?>" data-namapt="<?= $data['nama_pt']; ?>"
-                                data-pekerjaan="<?= $data['pekerjaan']; ?>"
-                                data-tanggalasbuilt="<?= $data['tanggal_terima_asbuilt']; ?>"
-                                data-tglterimabast="<?= $data['tgl_terima_bast']; ?>"
-                                data-filepdf="<?= $data['file_pdf']; ?>"
-                                data-tglterimabast2="<?= $data['tgl_terima_bast2']; ?>"
-                                data-tglpom="<?= $data['tgl_pom']; ?>" data-kembalipom="<?= $data['kembali_pom']; ?>"
-                                data-tglpusat2="<?= $data['tgl_pusat2']; ?>"
-                                data-tglkontraktor2="<?= $data['tgl_kontraktor2']; ?>"
-                                data-filepdfbast2="<?= $data['file_pdf_bast2']; ?>"
-                                data-keterangan="<?= $data['keterangan2']; ?>"
-                                data-createdby="<?= !empty($data['created_by']) ? $data['created_by'] : '-'; ?>"
-                                data-updatedby="<?= !empty($data['updated_by_bast2']) ? $data['updated_by_bast2'] : '-'; ?>">
-                                <i class="fas fa-eye mr-1"></i> Detail
-                            </button>
-                            <button type="button"
-                                class="btn-3d btn-indigo text-white edit-btn transition text-xs py-1 px-2"
-                                data-toggle="modal" data-target="#editModal2" data-id_bast2="<?= $data['id_bast2']; ?>"
-                                data-nokontrak="<?= $data['no_kontrak']; ?>" data-namapt="<?= $data['nama_pt']; ?>"
-                                data-pekerjaan="<?= $data['pekerjaan']; ?>"
-                                data-tglterimabast="<?= $data['tgl_terima_bast']; ?>"
-                                data-tglterimabast2="<?= $data['tgl_terima_bast2']; ?>"
-                                data-tglpom="<?= $data['tgl_pom']; ?>" data-kembalipom="<?= $data['kembali_pom']; ?>"
-                                data-tglpusat2="<?= $data['tgl_pusat2']; ?>"
-                                data-tglkontraktor2="<?= $data['tgl_kontraktor2']; ?>"
-                                data-keterangan="<?= $data['keterangan2']; ?>"
-                                data-filepdfbast2="<?= $data['file_pdf_bast2']; ?>"
-                                data-createdby="<?= !empty($data['created_by']) ? $data['created_by'] : '-'; ?>"
-                                data-updatedby="<?= !empty($data['updated_by_bast2']) ? $data['updated_by_bast2'] : '-'; ?>">
-                                <i class="fas fa-pen mr-1"></i> Edit
-                            </button>
+                        <!-- Action Buttons -->
+                        <td class="py-2 px-3">
+                            <div class="action-buttons">
+                                <button type="button"
+                                    class="btn-3d btn-teal btn-detail"
+                                    data-toggle="modal" data-target="#detailModal2"
+                                    data-nokontrak="<?= $data['no_kontrak']; ?>" data-namapt="<?= $data['nama_pt']; ?>"
+                                    data-pekerjaan="<?= $data['pekerjaan']; ?>"
+                                    data-tanggalasbuilt="<?= $data['tanggal_terima_asbuilt']; ?>"
+                                    data-tglterimabast="<?= $data['tgl_terima_bast']; ?>"
+                                    data-filepdf="<?= $data['file_pdf']; ?>"
+                                    data-tglterimabast2="<?= $data['tgl_terima_bast2']; ?>"
+                                    data-tglpom="<?= $data['tgl_pom']; ?>" data-kembalipom="<?= $data['kembali_pom']; ?>"
+                                    data-tglpusat2="<?= $data['tgl_pusat2']; ?>"
+                                    data-tglkontraktor2="<?= $data['tgl_kontraktor2']; ?>"
+                                    data-filepdfbast2="<?= $data['file_pdf_bast2']; ?>"
+                                    data-keterangan="<?= $data['keterangan2']; ?>"
+                                    data-createdby="<?= !empty($data['created_by']) ? $data['created_by'] : '-'; ?>"
+                                    data-updatedby="<?= !empty($data['updated_by_bast2']) ? $data['updated_by_bast2'] : '-'; ?>"
+                                    data-isrevisi="<?= !empty($data['is_revisi_bast2']) ? $data['is_revisi_bast2'] : 0; ?>"
+                                    title="Lihat Detail">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button"
+                                    class="btn-3d btn-indigo edit-btn"
+                                    data-toggle="modal" data-target="#editModal2" data-id_bast2="<?= $data['id_bast2']; ?>"
+                                    data-nokontrak="<?= $data['no_kontrak']; ?>" data-namapt="<?= $data['nama_pt']; ?>"
+                                    data-pekerjaan="<?= $data['pekerjaan']; ?>"
+                                    data-tglterimabast="<?= $data['tgl_terima_bast']; ?>"
+                                    data-tglterimabast2="<?= $data['tgl_terima_bast2']; ?>"
+                                    data-tglpom="<?= $data['tgl_pom']; ?>" data-kembalipom="<?= $data['kembali_pom']; ?>"
+                                    data-tglpusat2="<?= $data['tgl_pusat2']; ?>"
+                                    data-tglkontraktor2="<?= $data['tgl_kontraktor2']; ?>"
+                                    data-keterangan="<?= $data['keterangan2']; ?>"
+                                    data-filepdfbast2="<?= $data['file_pdf_bast2']; ?>"
+                                    data-createdby="<?= !empty($data['created_by']) ? $data['created_by'] : '-'; ?>"
+                                    data-updatedby="<?= !empty($data['updated_by_bast2']) ? $data['updated_by_bast2'] : '-'; ?>"
+                                    data-isrevisi="<?= !empty($data['is_revisi_bast2']) ? $data['is_revisi_bast2'] : 0; ?>"
+                                    title="Edit Data">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -455,6 +587,8 @@
                             <form id="editForm" action="<?= base_url('user/update_bast2_data') ?>" method="post"
                                 enctype="multipart/form-data" class="space-y-6">
                                 <input type="hidden" name="id_bast2" id="editIdBast2">
+                                <input type="hidden" name="page" id="editPage" value="1">
+                                <input type="hidden" name="search" id="editSearch" value="">
 
                                 <!-- INFORMASI KONTRAK (READ-ONLY) -->
                                 <div class="p-5 rounded-xl bg-gray-100 border border-gray-200">
@@ -564,6 +698,23 @@
                                     </div>
                                 </div>
 
+                                <!-- Flag Revisi -->
+                                <div class="p-6 rounded-xl bg-red-50 border border-red-200 space-y-4">
+                                    <h6 class="text-xl font-bold text-red-700 border-b border-red-300 pb-2">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i> Status Revisi
+                                    </h6>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="editIsRevisi2" name="is_revisi" value="1" 
+                                            class="h-5 w-5 text-red-600 rounded focus:ring-2 focus:ring-red-500 cursor-pointer">
+                                        <label for="editIsRevisi2" class="ml-3 text-sm font-medium text-gray-700 cursor-pointer">
+                                            <strong>Centang jika dokumen dikembalikan untuk revisi ke kontraktor</strong>
+                                        </label>
+                                    </div>
+                                    <p class="text-xs text-red-600 mt-2">
+                                        Jika dicentang, keterangan otomatis akan berubah menjadi "Revisi BAST 2 dikembalikan ke kontraktor"
+                                    </p>
+                                </div>
+
                                 <!-- FILE INPUT -->
                                 <div class="mt-6 p-5 rounded-xl bg-yellow-50 border border-yellow-200">
                                     <label for="editFilePdfBast2"
@@ -636,7 +787,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.js"></script>
 
     <!-- === MODAL UNTUK FILL CREATED BY === -->
-    <div class="modal fade" id="fillCreatedByModal" tabindex="-1" role="dialog" aria-labelledby="fillCreatedByModalLabel" aria-hidden="true">
+    <div class="modal fade" id="fillCreatedByModal" tabindex="-1" role="dialog"
+        aria-labelledby="fillCreatedByModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
@@ -650,7 +802,7 @@
                 <div class="modal-body">
                     <div class="alert alert-danger" role="alert">
                         <i class="fas fa-exclamation-circle mr-2"></i>
-                        <strong>Perhatian!</strong> Tindakan ini akan mengisi semua data kosong di kolom 
+                        <strong>Perhatian!</strong> Tindakan ini akan mengisi semua data kosong di kolom
                         <code>created_by</code> dengan "Admin". <br>
                         <strong>Tindakan ini TIDAK BISA DIBATALKAN!</strong>
                     </div>
@@ -676,203 +828,212 @@
     </div>
 
     <script>
-    // ===== HANDLE FILL CREATED BY BUTTON =====
-    $('#btnFillCreatedBy').on('click', function() {
-        $('#fillCreatedByModal').modal('show');
-    });
-
-    // ===== CONFIRM FILL CREATED BY =====
-    $('#btnConfirmFill').on('click', function() {
-        // Konfirmasi final
-        Swal.fire({
-            title: 'Konfirmasi Final',
-            html: 'Anda yakin ingin mengisi <strong>created_by</strong> dengan "Admin" untuk:<br><strong>user_bast2 (BAST 2)</strong><br><br><strong class="text-danger">Tindakan ini TIDAK bisa dibatalkan!</strong>',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Lanjutkan!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Proses fill
-                $.ajax({
-                    url: '<?= base_url('user/fill_created_by_all') ?>',
-                    type: 'POST',
-                    data: {
-                        tables: ['user_bast2']
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        $('#fillCreatedByModal').modal('hide');
-                        Swal.fire({
-                            title: 'Berhasil!',
-                            html: response.message,
-                            icon: 'success',
-                            timer: 3000
-                        });
-                        // Reload halaman setelah 3 detik
-                        setTimeout(function() {
-                            location.reload();
-                        }, 3000);
-                    },
-                    error: function(xhr) {
-                        var errorMsg = xhr.responseJSON?.message || 'Terjadi error saat memproses data';
-                        Swal.fire('Error', errorMsg, 'error');
-                    }
-                });
-            }
-        });
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        var detailButtons = document.querySelectorAll('.btn-detail');
-        var editButtons = document.querySelectorAll('.edit-btn');
-
-        // -----------------------------------------------------
-        // DETAIL MODAL LOGIC (PHP attribute to Modal content)
-        // -----------------------------------------------------
-        if (detailButtons) {
-            detailButtons.forEach(function(button) {
-                button.addEventListener('click', function(event) {
-                    var modal = document.getElementById('detailModal2');
-                    var target = event.currentTarget;
-
-                    if (modal) {
-                        // Populate Detail Modal Fields
-                        modal.querySelector('#modalNoKontrak').textContent = target
-                            .getAttribute('data-nokontrak');
-                        modal.querySelector('#modalNamaPT').textContent = target.getAttribute(
-                            'data-namapt');
-                        modal.querySelector('#modalPekerjaan').textContent = target
-                            .getAttribute('data-pekerjaan');
-                        modal.querySelector('#modalTanggalAsbuilt').textContent = target
-                            .getAttribute('data-tanggalasbuilt');
-                        modal.querySelector('#modalTglTerimaBast').textContent = target
-                            .getAttribute('data-tglterimabast');
-                        modal.querySelector('#modalTglTerimaBast2').textContent = target
-                            .getAttribute('data-tglterimabast2');
-                        modal.querySelector('#modalTglPom').textContent = target.getAttribute(
-                            'data-tglpom');
-                        modal.querySelector('#modalkmbalipom').textContent = target
-                            .getAttribute('data-kembalipom');
-                        modal.querySelector('#modalTglPusat2').textContent = target
-                            .getAttribute('data-tglpusat2');
-                        modal.querySelector('#modalTglKontraktor2').textContent = target
-                            .getAttribute('data-tglkontraktor2');
-                        modal.querySelector('#modalKeterangan').textContent = target
-                            .getAttribute('data-keterangan');
-                        modal.querySelector('#modalCreatedBy').textContent = target
-                            .getAttribute('data-createdby') || '-';
-                        modal.querySelector('#modalUpdatedBy').textContent = target
-                            .getAttribute('data-updatedby') || '-';
-
-                        // File links/names
-                        var filePdfBast = target.getAttribute('data-filepdf');
-                        var filePdfBast2 = target.getAttribute('data-filepdfbast2');
-
-                        // Create view link for BAST 1
-                        var link1 = document.createElement('a');
-                        link1.href = '<?= base_url('assets/upload/bast/') ?>' + filePdfBast;
-                        link1.target = '_blank';
-                        link1.className = 'text-indigo-600 hover:text-indigo-800 break-all';
-                        link1.innerHTML = '<i class="fas fa-link mr-1"></i>' + filePdfBast;
-
-                        // Create view link for BAST 2
-                        var link2 = document.createElement('a');
-                        link2.href = '<?= base_url('assets/upload/bast2/') ?>' + filePdfBast2;
-                        link2.target = '_blank';
-                        link2.className = 'text-indigo-600 hover:text-indigo-800 break-all';
-                        link2.innerHTML = '<i class="fas fa-link mr-1"></i>' + filePdfBast2;
-
-                        // Clear and append
-                        var filePdfContainer = modal.querySelector('#modalFilePdf');
-                        filePdfContainer.textContent = '';
-                        filePdfContainer.appendChild(link1);
-
-                        var filePdfBast2Container = modal.querySelector('#modalFilePdfBast2');
-                        filePdfBast2Container.textContent = '';
-                        filePdfBast2Container.appendChild(link2);
-                    }
-                });
-            });
-        } else {
-            console.error('No detail buttons found in the DOM.');
-        }
-
-        // -----------------------------------------------------
-        // EDIT MODAL LOGIC (PHP attribute to Form input values)
-        // -----------------------------------------------------
-        if (editButtons) {
-            editButtons.forEach(function(button) {
-                button.addEventListener('click', function(event) {
-                    var modal = document.getElementById('editModal2');
-                    var target = event.currentTarget;
-
-                    if (modal) {
-                        // Set hidden ID for form submission
-                        modal.querySelector('#editIdBast2').value = target.getAttribute(
-                            'data-id_bast2');
-
-                        // Set read-only fields
-                        modal.querySelector('#editNoKontrak').value = target.getAttribute(
-                            'data-nokontrak');
-                        modal.querySelector('#editNamaPT').value = target.getAttribute(
-                            'data-namapt');
-                        modal.querySelector('#editPekerjaan').value = target.getAttribute(
-                            'data-pekerjaan');
-                        modal.querySelector('#editTglTerimaBast').value = target.getAttribute(
-                            'data-tglterimabast'); // Acuan Retensi
-
-                        // Set editable fields (Dates and Keterangan)
-                        // Use value for input fields (especially date and text)
-                        modal.querySelector('#editTglTerimaBast2').value = target.getAttribute(
-                                'data-tglterimabast2') === '0000-00-00' ? '' : target
-                            .getAttribute('data-tglterimabast2');
-                        modal.querySelector('#editTglPom').value = target.getAttribute(
-                            'data-tglpom') === '0000-00-00' ? '' : target.getAttribute(
-                            'data-tglpom');
-                        modal.querySelector('#editKembaliPom').value = target.getAttribute(
-                            'data-kembalipom') === '0000-00-00' ? '' : target.getAttribute(
-                            'data-kembalipom');
-                        modal.querySelector('#editTglPusat2').value = target.getAttribute(
-                            'data-tglpusat2') === '0000-00-00' ? '' : target.getAttribute(
-                            'data-tglpusat2');
-                        modal.querySelector('#editTglKontraktor2').value = target.getAttribute(
-                                'data-tglkontraktor2') === '0000-00-00' ? '' : target
-                            .getAttribute('data-tglkontraktor2');
-                        modal.querySelector('#editKeterangan').value = target.getAttribute(
-                            'data-keterangan');
-
-                        // Set Created By dan Updated By (readonly)
-                        modal.querySelector('#editCreatedBy').value = target.getAttribute(
-                            'data-createdby') || '-';
-                        modal.querySelector('#editUpdatedBy').value = target.getAttribute(
-                            'data-updatedby') || '-';
-
-                        // Clear file input for security (user must re-select if needed)
-                        modal.querySelector('#editFilePdfBast2').value = '';
-                    }
-                });
-            });
-        }
-
-        // Initialize DataTables
-        $('#data-tabel').DataTable({
-            "scrollX": true,
-            "paging": true,
-            "searching": true,
-            "ordering": true,
-            "info": true,
-            "responsive": true
-        });
-
-    });
+    // Base URL configuration
+    var BASE_URL = '<?= base_url() ?>';
 
     $(document).ready(function() {
-        $('#data-tabel').DataTable({
-            pageLength: 10,
-            responsive: true
+        var table = $('#data-tabel');
+
+        if (table.length) {
+            if (!$.fn.dataTable.isDataTable('#data-tabel')) {
+                table.DataTable({
+                    scrollX: true,
+                    scrollY: "400px", // tinggi scroll, ubah sesuai kebutuhan
+                    scroller: true, // hanya render row visible
+                    paging: true,
+                    pageLength: 10,
+                    searching: true,
+                    ordering: true,
+                    info: true,
+                    responsive: true,
+                    deferRender: true, // render row saat visible
+                    processing: true,
+                    bAutoWidth: false
+                });
+            }
+        }
+
+
+        // =========================
+        // TOOLTIP INITIALIZATION
+        // =========================
+        try {
+            $('[data-toggle="tooltip"]').tooltip({
+                delay: {
+                    "show": 250,
+                    "hide": 100
+                }
+            });
+        } catch (e) {
+            console.warn('Tooltip initialization skipped');
+        }
+
+        // =========================
+        // FILL CREATED BY MODAL
+        // =========================
+        $('#btnFillCreatedBy').on('click', function() {
+            $('#fillCreatedByModal').modal('show');
+        });
+
+        $('#btnConfirmFill').on('click', function() {
+            Swal.fire({
+                title: 'Konfirmasi Final',
+                html: 'Anda yakin ingin mengisi <strong>created_by</strong> dengan "Admin" untuk:<br><strong>user_bast2 (BAST 2)</strong><br><br><strong class="text-danger">Tindakan ini TIDAK bisa dibatalkan!</strong>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Lanjutkan!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: BASE_URL + 'user/fill_created_by_all',
+                        type: 'POST',
+                        data: {
+                            tables: ['user_bast2']
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            $('#fillCreatedByModal').modal('hide');
+                            Swal.fire({
+                                title: 'Berhasil!',
+                                html: response.message,
+                                icon: 'success',
+                                timer: 3000
+                            });
+                            setTimeout(function() {
+                                location.reload();
+                            }, 3000);
+                        },
+                        error: function(xhr) {
+                            var errorMsg = xhr.responseJSON?.message ||
+                                'Terjadi error saat memproses data';
+                            Swal.fire('Error', errorMsg, 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // =========================
+        // DETAIL MODAL LOGIC
+        // =========================
+        $(document).on('click', '.btn-detail', function(event) {
+            event.preventDefault();
+            var $btn = $(this);
+            var modal = document.getElementById('detailModal2');
+            if (!modal) return;
+
+            // Populate modal fields
+            modal.querySelector('#modalNoKontrak').textContent = $btn.attr('data-nokontrak') || '';
+            modal.querySelector('#modalNamaPT').textContent = $btn.attr('data-namapt') || '';
+            modal.querySelector('#modalPekerjaan').textContent = $btn.attr('data-pekerjaan') || '';
+            modal.querySelector('#modalTanggalAsbuilt').textContent = $btn.attr(
+                'data-tanggalasbuilt') || '';
+            modal.querySelector('#modalTglTerimaBast').textContent = $btn.attr('data-tglterimabast') ||
+                '';
+            modal.querySelector('#modalTglTerimaBast2').textContent = $btn.attr(
+                'data-tglterimabast2') || '';
+            modal.querySelector('#modalTglPom').textContent = $btn.attr('data-tglpom') || '';
+            modal.querySelector('#modalkmbalipom').textContent = $btn.attr('data-kembalipom') || '';
+            modal.querySelector('#modalTglPusat2').textContent = $btn.attr('data-tglpusat2') || '';
+            modal.querySelector('#modalTglKontraktor2').textContent = $btn.attr(
+                'data-tglkontraktor2') || '';
+            modal.querySelector('#modalKeterangan').textContent = $btn.attr('data-keterangan') || '';
+            modal.querySelector('#modalCreatedBy').textContent = $btn.attr('data-createdby') || '-';
+            modal.querySelector('#modalUpdatedBy').textContent = $btn.attr('data-updatedby') || '-';
+
+            // File links
+            var filePdfBast = $btn.attr('data-filepdf');
+            var filePdfBast2 = $btn.attr('data-filepdfbast2');
+
+            var link1 = document.createElement('a');
+            link1.href = BASE_URL + 'assets/upload/bast/' + filePdfBast;
+            link1.target = '_blank';
+            link1.className = 'text-indigo-600 hover:text-indigo-800 break-all';
+            link1.innerHTML = '<i class="fas fa-link mr-1"></i>' + filePdfBast;
+
+            var link2 = document.createElement('a');
+            link2.href = BASE_URL + 'assets/upload/bast2/' + filePdfBast2;
+            link2.target = '_blank';
+            link2.className = 'text-indigo-600 hover:text-indigo-800 break-all';
+            link2.innerHTML = '<i class="fas fa-link mr-1"></i>' + filePdfBast2;
+
+            // Clear & append
+            modal.querySelector('#modalFilePdf').textContent = '';
+            modal.querySelector('#modalFilePdf').appendChild(link1);
+
+            modal.querySelector('#modalFilePdfBast2').textContent = '';
+            modal.querySelector('#modalFilePdfBast2').appendChild(link2);
+        });
+
+        // =========================
+        // EDIT MODAL LOGIC
+        // =========================
+        $(document).on('click', '.edit-btn', function(event) {
+            event.preventDefault();
+            var $btn = $(this);
+            var modal = document.getElementById('editModal2');
+            if (!modal) return;
+
+            modal.querySelector('#editIdBast2').value = $btn.attr('data-id_bast2') || '';
+            modal.querySelector('#editNoKontrak').value = $btn.attr('data-nokontrak') || '';
+            modal.querySelector('#editNamaPT').value = $btn.attr('data-namapt') || '';
+            modal.querySelector('#editPekerjaan').value = $btn.attr('data-pekerjaan') || '';
+            modal.querySelector('#editTglTerimaBast').value = $btn.attr('data-tglterimabast') || '';
+            modal.querySelector('#editTglTerimaBast2').value = ($btn.attr('data-tglterimabast2') ===
+                '0000-00-00' || !$btn.attr('data-tglterimabast2')) ? '' : $btn.attr(
+                'data-tglterimabast2');
+            modal.querySelector('#editTglPom').value = ($btn.attr('data-tglpom') === '0000-00-00' || !
+                $btn.attr('data-tglpom')) ? '' : $btn.attr('data-tglpom');
+            modal.querySelector('#editKembaliPom').value = ($btn.attr('data-kembalipom') ===
+                '0000-00-00' || !$btn.attr('data-kembalipom')) ? '' : $btn.attr('data-kembalipom');
+            modal.querySelector('#editTglPusat2').value = ($btn.attr('data-tglpusat2') ===
+                '0000-00-00' || !$btn.attr('data-tglpusat2')) ? '' : $btn.attr('data-tglpusat2');
+            modal.querySelector('#editTglKontraktor2').value = ($btn.attr('data-tglkontraktor2') ===
+                '0000-00-00' || !$btn.attr('data-tglkontraktor2')) ? '' : $btn.attr(
+                'data-tglkontraktor2');
+            modal.querySelector('#editKeterangan').value = $btn.attr('data-keterangan') || '';
+            modal.querySelector('#editCreatedBy').value = $btn.attr('data-createdby') || '-';
+            modal.querySelector('#editUpdatedBy').value = $btn.attr('data-updatedby') || '-';
+            modal.querySelector('#editFilePdfBast2').value = '';
+            
+            // Load checkbox revisi state
+            var isRevisi = $btn.attr('data-isrevisi');
+            modal.querySelector('#editIsRevisi2').checked = (isRevisi == 1);
+        });
+
+        // Form submit - capture page and search before submit
+        $(document).on('submit', '#editForm', function(e) {
+            var urlParams = new URLSearchParams(window.location.search);
+            var currentPage = urlParams.get('page') || '1';
+            var searchQuery = urlParams.get('search') || '';
+            
+            console.log('=== FORM SUBMIT DEBUG ===');
+            console.log('URL params - page:', currentPage);
+            console.log('URL params - search:', searchQuery);
+            console.log('URL:', window.location.href);
+            
+            // Set hidden fields dengan nilai terbaru
+            var pageField = document.getElementById('editPage');
+            var searchField = document.getElementById('editSearch');
+            
+            pageField.value = currentPage;
+            searchField.value = searchQuery;
+            
+            console.log('After setting - page field value:', pageField.value);
+            console.log('After setting - search field value:', searchField.value);
+            
+            // Verify form data sebelum submit
+            var formData = new FormData(this);
+            console.log('Form data akan dikirim:');
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+            
+            // Let form submit normally (tidak prevent default)
+            // Form akan submit via POST dan redirect dengan parameters
         });
     });
     </script>

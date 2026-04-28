@@ -13,13 +13,18 @@ class Laporan_model extends CI_Model
     user_asbuiltdrawing.updated_by as updated_by_asbuilt,
     user_asbuiltdrawing.keterangan as keterangan_asbuilt,
     user_bast.tgl_terima_bast as tgl_terima_bast,
+    user_bast.tgl_pusat as tgl_pusat_bast1,
+    user_bast.tgl_kontraktor as tgl_kontraktor_bast1,
     user_bast.updated_by as updated_by_bast,
+    user_bast.is_revisi,
+    user_bast.keterangan as keterangan_bast,
     user_bast2.tgl_terima_bast2,
     user_bast2.tgl_pom,
      user_bast2.kembali_pom,
     user_bast2.tgl_pusat2,
     user_bast2.tgl_kontraktor2,
     user_bast2.keterangan2,
+    user_bast2.is_revisi as is_revisi_bast2,
     user_bast2.updated_by as updated_by_bast2,
     user_closing.tgl_closing,
     user_closing.updated_by as updated_by_closing,
@@ -58,13 +63,18 @@ class Laporan_model extends CI_Model
     user_asbuiltdrawing.updated_by as updated_by_asbuilt,
     user_asbuiltdrawing.keterangan as keterangan_asbuilt,
     user_bast.tgl_terima_bast as tgl_terima_bast,
+    user_bast.tgl_pusat as tgl_pusat_bast1,
+    user_bast.tgl_kontraktor as tgl_kontraktor_bast1,
     user_bast.updated_by as updated_by_bast,
+    user_bast.is_revisi,
+    user_bast.keterangan as keterangan_bast,
     user_bast2.tgl_terima_bast2,
     user_bast2.tgl_pom,
     user_bast2.kembali_pom,
     user_bast2.tgl_pusat2,
     user_bast2.tgl_kontraktor2,
     user_bast2.keterangan2,
+    user_bast2.is_revisi as is_revisi_bast2,
     user_bast2.updated_by as updated_by_bast2,
     user_closing.tgl_closing,
     user_closing.updated_by as updated_by_closing,
@@ -105,12 +115,40 @@ class Laporan_model extends CI_Model
             return !empty($date) && $date != '0000-00-00';
         };
 
+        // =========================================================================
+        // LOGIKA REVISI (JIKA ADA CENTANG REVISI ATAU FLAG REVISI = 1)
+        // =========================================================================
+        if (!empty($row['is_revisi']) && $row['is_revisi'] == 1) {
+            return 'Revisi BAST 1 dikembalikan ke kontraktor';
+        }
+
+        // =========================================================================
+        // LOGIKA REVISI BAST 2 (JIKA ADA CENTANG REVISI BAST2 ATAU FLAG REVISI_BAST2 = 1)
+        // =========================================================================
+        if (!empty($row['is_revisi_bast2']) && $row['is_revisi_bast2'] == 1) {
+            return 'Revisi BAST 2 dikembalikan ke kontraktor';
+        }
+
         // Ambil status tanggal-tanggal penting
         $tgl_kontraktor2 = $is_date_filled($row['tgl_kontraktor2'] ?? null);
         $tgl_pom         = $is_date_filled($row['tgl_pom'] ?? null);
         $tgl_pusat       = $is_date_filled($row['tgl_pusat2'] ?? null);
         $tgl_bast2       = $is_date_filled($row['tgl_terima_bast2'] ?? null);
+        $tgl_terima_bast = $is_date_filled($row['tgl_terima_bast'] ?? null);
+        $tgl_closing     = $is_date_filled($row['tgl_closing'] ?? null);
 
+        // =========================================================================
+        // LOGIKA BARU: BAST 1 SUDAH DITERIMA
+        // Jika tgl_bast sudah terisi tetapi semua tanggal setelahnya belum terisi
+        // Gabungkan dengan keterangan yang ada di halaman BAST1
+        // =========================================================================
+        if ($tgl_terima_bast && !$tgl_bast2 && !$tgl_closing && !$tgl_pom && !$tgl_pusat && !$tgl_kontraktor2) {
+            $keterangan_bast1 = $row['keterangan_bast'] ?? '';
+            if (!empty($keterangan_bast1)) {
+                return 'BAST 1 sudah di terima - ' . $keterangan_bast1;
+            }
+            return 'BAST 1 sudah di terima';
+        }
 
         // =========================================================================
         // LOGIKA TTD BARU DAN YANG DIPERKUAT

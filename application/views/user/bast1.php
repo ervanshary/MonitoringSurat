@@ -137,7 +137,7 @@
         <?php if ($this->session->userdata('role') == 'admin') : ?>
         <div class="alert alert-info alert-dismissible fade show" role="alert">
             <i class="fas fa-info-circle mr-2"></i>
-            <strong>Admin Tools:</strong> 
+            <strong>Admin Tools:</strong>
             <button type="button" class="btn btn-sm btn-warning" id="btnFillCreatedBy">
                 <i class="fas fa-edit mr-1"></i> Isi Created By Data Lama
             </button>
@@ -191,6 +191,7 @@
                     <th class="py-3 px-3">Tanggal Terima BAST 1</th>
                     <th>Keterangan BAST</th>
                     <th>Retensi</th>
+                    <th class="py-3 px-3">Status Revisi</th>
                     <th class="py-3 px-3">File PDF</th>
                     <th class="py-3 px-3">Created By</th>
                     <th class="py-3 px-3">Updated By</th>
@@ -210,6 +211,17 @@
                         <?= isset($data['keterangan_bast']) ? $data['keterangan_bast'] : ''; ?></td>
                     <td data-toggle="tooltip" title="<?= $data['opsi_retensi'] . ' hari'; ?>">
                         <?= isset($data['opsi_retensi']) ? $data['opsi_retensi'] . ' hari' : ''; ?></td>
+                    <td class="py-2 px-3 text-center">
+                        <?php if (!empty($data['is_revisi']) && $data['is_revisi'] == 1) : ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-exclamation-circle mr-1"></i> Revisi
+                            </span>
+                        <?php else : ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i> Normal
+                            </span>
+                        <?php endif; ?>
+                    </td>
                     <td class="py-2 px-3 text-center">
                         <a href="<?= base_url('assets/upload/bast1/' . $data['file_pdf']); ?>" target="_blank"
                             class="text-indigo-600 hover:text-indigo-800 text-lg transition">
@@ -254,7 +266,8 @@
                             data-tglkontraktor="<?= $data['tgl_kontraktor']; ?>"
                             data-createdby="<?= !empty($data['created_by']) ? $data['created_by'] : '-'; ?>"
                             data-updatedby="<?= !empty($data['updated_by_bast']) ? $data['updated_by_bast'] : '-'; ?>"
-                            data-keterangan="<?= $data['keterangan_bast']; ?>" data-filepdf="<?= $data['file_pdf']; ?>">
+                            data-keterangan="<?= $data['keterangan_bast']; ?>" data-filepdf="<?= $data['file_pdf']; ?>"
+                            data-isrevisi="<?= !empty($data['is_revisi']) ? $data['is_revisi'] : 0; ?>">
                             <i class="fas fa-pen mr-1"></i> Edit
                         </button>
 
@@ -357,6 +370,8 @@
 
                         <input type="hidden" name="id_bast" id="editIdBast">
                         <input type="hidden" id="editIdAsbuilt" name="id_asbuilt">
+                        <input type="hidden" name="page" id="editPage1" value="1">
+                        <input type="hidden" name="search" id="editSearch1" value="">
 
                         <!-- Informasi Kontrak (Read Only) -->
                         <div class="p-5 rounded-xl bg-gray-100 border border-gray-200">
@@ -456,6 +471,23 @@
                             </div>
                         </div>
 
+                        <!-- Flag Revisi -->
+                        <div class="p-6 rounded-xl bg-red-50 border border-red-200 space-y-4">
+                            <h6 class="text-xl font-bold text-red-700 border-b border-red-300 pb-2">
+                                <i class="fas fa-exclamation-triangle mr-2"></i> Status Revisi
+                            </h6>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="editIsRevisi" name="is_revisi" value="1" 
+                                    class="h-5 w-5 text-red-600 rounded focus:ring-2 focus:ring-red-500 cursor-pointer">
+                                <label for="editIsRevisi" class="ml-3 text-sm font-medium text-gray-700 cursor-pointer">
+                                    <strong>Centang jika dokumen dikembalikan untuk revisi ke kontraktor</strong>
+                                </label>
+                            </div>
+                            <p class="text-xs text-red-600 mt-2">
+                                Jika dicentang, keterangan otomatis akan berubah menjadi "Revisi dikembalikan ke kontraktor"
+                            </p>
+                        </div>
+
                         <!-- Footer -->
                         <div class="modal-footer pt-6 border-t border-gray-200 flex justify-end space-x-3">
                             <button type="button"
@@ -539,7 +571,16 @@
                                         required></textarea> </div> <!-- Upload PDF -->
                                 <div class="form-group"> <label for="file_pdf">Unggah PDF:</label> <input type="file"
                                         id="file_pdf" name="file_pdf" class="form-control-file"
-                                        accept="application/pdf"> </div> <!-- Tombol submit -->
+                                        accept="application/pdf"> </div>
+                                <!-- Checkbox Revisi -->
+                                <div class="form-group form-check mt-3">
+                                    <input type="checkbox" class="form-check-input" id="is_revisi_add" name="is_revisi" value="1">
+                                    <label class="form-check-label" for="is_revisi_add">
+                                        <strong>Dokumen dikembalikan untuk revisi</strong>
+                                    </label>
+                                    <small class="d-block text-muted mt-1">Centang jika dokumen dikembalikan ke kontraktor untuk revisi</small>
+                                </div>
+                                <!-- Tombol submit -->
                                 <div class="form-group text-right mt-3"> <button type="submit"
                                         class="btn btn-primary">Submit</button> </div>
                             </div>
@@ -563,7 +604,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
 
     <!-- === MODAL UNTUK FILL CREATED BY === -->
-    <div class="modal fade" id="fillCreatedByModal" tabindex="-1" role="dialog" aria-labelledby="fillCreatedByModalLabel" aria-hidden="true">
+    <div class="modal fade" id="fillCreatedByModal" tabindex="-1" role="dialog"
+        aria-labelledby="fillCreatedByModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
@@ -577,7 +619,7 @@
                 <div class="modal-body">
                     <div class="alert alert-danger" role="alert">
                         <i class="fas fa-exclamation-circle mr-2"></i>
-                        <strong>Perhatian!</strong> Tindakan ini akan mengisi semua data kosong di kolom 
+                        <strong>Perhatian!</strong> Tindakan ini akan mengisi semua data kosong di kolom
                         <code>created_by</code> dengan "Admin". <br>
                         <strong>Tindakan ini TIDAK BISA DIBATALKAN!</strong>
                     </div>
@@ -645,7 +687,8 @@
                             }, 3000);
                         },
                         error: function(xhr) {
-                            var errorMsg = xhr.responseJSON?.message || 'Terjadi error saat memproses data';
+                            var errorMsg = xhr.responseJSON?.message ||
+                                'Terjadi error saat memproses data';
                             Swal.fire('Error', errorMsg, 'error');
                         }
                     });
@@ -727,6 +770,18 @@
             $('#editKeterangan').val($(this).data('keterangan'));
             $('#editCreatedBy').val($(this).data('createdby') || '-');
             $('#editUpdatedBy').val($(this).data('updatedby') || '-');
+            
+            // Load checkbox revisi
+            var isRevisi = $(this).data('isrevisi');
+            console.log('Is Revisi Value:', isRevisi);
+            console.log('Is Revisi Type:', typeof isRevisi);
+            if (isRevisi == 1 || isRevisi == '1') {
+                $('#editIsRevisi').prop('checked', true);
+                console.log('Checkbox checked: true');
+            } else {
+                $('#editIsRevisi').prop('checked', false);
+                console.log('Checkbox checked: false');
+            }
 
             console.log('Edit button clicked');
             console.log('ID BAST:', idBast);
@@ -740,57 +795,36 @@
             });
         });
 
-        // Form submit handler dengan event delegation - AJAX
+        // Form submit - capture page and search before submit
         $(document).on('submit', '#editForm1', function(e) {
-            e.preventDefault();
-
-            console.log('Form #editForm1 submitted via AJAX!');
-
-            var formData = {
-                id_bast: $('#editIdBast').val(),
-                id_asbuilt: $('#editIdAsbuilt').val(),
-                no_kontrak: $('#editNoKontrak').val(),
-                nama_pt: $('#editNamaPT').val(),
-                pekerjaan: $('#editPekerjaan').val(),
-                tgl_terima_asbuilt: $('#editTanggalAsbuilt').val(),
-                status_asbuilt: $('#editStatusAsbuilt').val(),
-                tgl_terima_bast: $('#editTglBast').val(),
-                tgl_pusat: $('#editTglPusat').val(),
-                tgl_kontraktor: $('#editTglKontraktor').val(),
-                opsi_retensi: $('#editOpsiRetensi').val(),
-                keterangan: $('#editKeterangan').val()
-            };
-
-            console.log('Data to submit:', formData);
-
-            // Validasi field required
-            if (!formData.id_bast || !formData.id_asbuilt || !formData.tgl_terima_bast) {
-                alert('ID BAST, ID Asbuilt, dan Tanggal BAST tidak boleh kosong!');
-                return false;
+            var urlParams = new URLSearchParams(window.location.search);
+            var currentPage = urlParams.get('page') || '1';
+            var searchQuery = urlParams.get('search') || '';
+            
+            console.log('=== FORM SUBMIT DEBUG (BAST1) ===');
+            console.log('URL params - page:', currentPage);
+            console.log('URL params - search:', searchQuery);
+            console.log('URL:', window.location.href);
+            
+            // Set hidden fields dengan nilai terbaru
+            var pageField = document.getElementById('editPage1');
+            var searchField = document.getElementById('editSearch1');
+            
+            pageField.value = currentPage;
+            searchField.value = searchQuery;
+            
+            console.log('After setting - page field value:', pageField.value);
+            console.log('After setting - search field value:', searchField.value);
+            
+            // Verify form data sebelum submit
+            var formData = new FormData(this);
+            console.log('Form data akan dikirim:');
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
             }
-
-            // Send via AJAX
-            $.ajax({
-                url: '<?= base_url('user/updatebast1') ?>',
-                type: 'POST',
-                data: formData,
-                success: function(response) {
-                    console.log('AJAX Success:', response);
-                    alert('Data berhasil diperbarui!');
-                    $('#editModal1').modal('hide');
-                    // Reload halaman untuk refresh tabel
-                    setTimeout(function() {
-                        location.reload();
-                    }, 500);
-                },
-                error: function(xhr, status, error) {
-                    console.log('AJAX Error:', xhr, status, error);
-                    console.log('Response text:', xhr.responseText);
-                    alert('Terjadi error saat menyimpan data');
-                }
-            });
-
-            return false;
+            
+            // Let form submit normally (tidak prevent default)
+            // Form akan submit via POST dan redirect dengan parameters
         });
 
 
@@ -922,6 +956,27 @@
 
         $('#pekerjaan').val(pekerjaan || '');
         $('#id_asbuilt').val(idAsbuilt || '');
+    });
+
+    // Form submit handler untuk ensure page dan search value diisi sebelum submit
+    $(document).on('submit', '#editForm1', function(e) {
+        var urlParams = new URLSearchParams(window.location.search);
+        var currentPage = urlParams.get('page') || '1';
+        var searchQuery = urlParams.get('search') || '';
+        
+        document.getElementById('editPage1').value = currentPage;
+        document.getElementById('editSearch1').value = searchQuery;
+        
+        // Destroy DataTable sebelum form submit/redirect
+        if ($.fn.dataTable.isDataTable('#data-tabel')) {
+            $('#data-tabel').DataTable().destroy();
+        }
+        
+        console.log('Form submitted:');
+        console.log('  Page:', currentPage);
+        console.log('  Search:', searchQuery);
+        console.log('  Page field value:', document.getElementById('editPage1').value);
+        console.log('  Search field value:', document.getElementById('editSearch1').value);
     });
     </script>
 </body>

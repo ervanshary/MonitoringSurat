@@ -21,7 +21,10 @@ class Bast_model extends CI_Model
             'ub.tgl_pusat',
             'ub.tgl_kontraktor',
             'ub.file_pdf',
-            'ub.opsi_retensi'
+            'ub.opsi_retensi',
+            'ub.is_revisi',
+            'ub.created_by',
+            'ub.updated_by AS updated_by_bast'
         ])
         ->from('user_final_account ufa')
         ->join('user_asbuiltdrawing uad', 'ufa.no_kontrak = uad.no_kontrak', 'inner')
@@ -244,25 +247,53 @@ class Bast_model extends CI_Model
 
 public function updateBastData($id_bast, $data)
 {
+    if (empty($id_bast)) {
+        log_message('error', 'updateBastData: ID BAST kosong');
+        return false;
+    }
+
     $this->db->where('id_bast', $id_bast);
     $this->db->update('user_bast', $data);
 
-    log_message('debug', 'UPDATE BAST QUERY: ' . $this->db->last_query());
-    log_message('debug', 'AFFECTED ROWS BAST: ' . $this->db->affected_rows());
+    $query = $this->db->last_query();
+    $error = $this->db->error();
+    $affected = $this->db->affected_rows();
 
-    return $this->db->affected_rows();
+    log_message('debug', 'UPDATE BAST QUERY: ' . $query);
+    log_message('debug', 'AFFECTED ROWS BAST: ' . $affected);
+    
+    if ($error['code'] != 0) {
+        log_message('error', 'UPDATE BAST ERROR: ' . json_encode($error));
+        return false;
+    }
+
+    return $affected;  // Return jumlah rows yang affected (bisa 0 jika nilai sama)
 }
 
 
 public function updateAsbuiltData($id_asbuilt, $data)
 {
+    if (empty($id_asbuilt)) {
+        log_message('error', 'updateAsbuiltData: ID Asbuilt kosong');
+        return false;
+    }
+
     $this->db->where('id_asbuilt', $id_asbuilt);
     $this->db->update('user_asbuiltdrawing', $data);
 
-    log_message('debug', 'UPDATE ASBUILT QUERY: ' . $this->db->last_query());
-    log_message('debug', 'AFFECTED ROWS ASBUILT: ' . $this->db->affected_rows());
+    $query = $this->db->last_query();
+    $error = $this->db->error();
+    $affected = $this->db->affected_rows();
 
-    return $this->db->affected_rows();
+    log_message('debug', 'UPDATE ASBUILT QUERY: ' . $query);
+    log_message('debug', 'AFFECTED ROWS ASBUILT: ' . $affected);
+    
+    if ($error['code'] != 0) {
+        log_message('error', 'UPDATE ASBUILT ERROR: ' . json_encode($error));
+        return false;
+    }
+
+    return $affected;  // Return jumlah rows yang affected (bisa 0 jika nilai sama)
 }
 
 
