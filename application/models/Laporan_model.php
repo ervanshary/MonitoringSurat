@@ -131,91 +131,71 @@ class Laporan_model extends CI_Model
         // CEK: Ada BAST 2 (jangan jalankan BAST 1)
         // Jika ada salah satu: tgl_bast2, tgl_pom, tgl_pusat2, tgl_kontraktor2, atau tgl_closing
         // =========================================================================
-        $ada_bast2_atau_closing = $tgl_bast2 || $tgl_pom || $tgl_pusat2 || $tgl_kontraktor2 || $tgl_closing;
-
-        if ($ada_bast2_atau_closing) {
-            // ===== LOGIKA BAST 2 - SCENARIO BARU =====
-            
-            // Jika tgl_bast2 ada, handle berbagai scenario TTD
-            if ($tgl_bast2) {
-                // Scenario 4: Semua ada → DONE
-                if ($tgl_kontraktor2) {
-                    return 'BAST 2 sudah diterima DONE';
-                }
-
-                // Scenario 3: tgl_pusat ada (tapi kontraktor tidak) → Proses ke Pusat
-                // Even jika tgl_pom dan tgl_kembali_pom tidak ada
-                if ($tgl_pusat2) {
-                    return 'BAST 2 proses ke Pusat';
-                }
-
-                // Scenario 2: tgl_pom ada + tgl_kembali_pom TIDAK ada (dan pusat tidak ada) → Proses ke POM
-                if ($tgl_pom && !$tgl_kembali_pom) {
-                    return 'BAST 2 Proses ke POM';
-                }
-
-                // Scenario 1: Hanya tgl_bast2 → Proses TTD PM
-                return 'BAST 2 Proses TTD PM';
+        if ($tgl_terima_bast && !$tgl_bast2 && !$tgl_closing && !$tgl_pom && !$tgl_pusat && !$tgl_kontraktor2) {
+            $keterangan_bast1 = $row['keterangan_bast'] ?? '';
+            if (!empty($keterangan_bast1)) {
+                return 'BAST 1 sudah di terima - ' . $keterangan_bast1;
             }
-
-            // Jika tgl_closing ada tapi tgl_bast2 belum ada → jalankan logika lama BAST 2
-            if ($tgl_closing && !$tgl_bast2) {
-                if (isset($row['opsi_retensi']) && $row['opsi_retensi'] == 0) {
-                    return 'DONE';
-                }
-
-                $tgl_terima_bast_ts = strtotime($row['tgl_terima_bast']);
-                $tgl_terima_bast_plus_retensi = strtotime("+" . $row['opsi_retensi'] . " days", $tgl_terima_bast_ts);
-
-                if (time() >= $tgl_terima_bast_plus_retensi) {
-                    return 'Masa retensi habis, segera ajukan BAST 2';
-                } else {
-                    return 'BAST 2 belum diajukan / masih dalam masa retensi';
-                }
-            }
+            return 'BAST 1 sudah di terima';
         }
 
         // =========================================================================
         // LOGIKA BAST 1 (hanya jika tidak ada BAST 2)
         // =========================================================================
-        if ($tgl_terima_bast) {
-            // Cek revisi dulu
-            if (!empty($row['is_revisi']) && $row['is_revisi'] == 1) {
-                return 'BAST 1 sudah diterima - revisi dikembalikan ke kontraktor';
-            }
 
-            // Cek retensi = 0 (langsung DONE)
-            if (isset($row['opsi_retensi']) && $row['opsi_retensi'] == 0) {
-                return 'DONE';
-            }
+        // Logika 1 & 5 (Gabungan): Status DONE Final
+        // (tgl_kontraktor2 terisi) ATAU (tgl_pom dan tgl_pusat TIDAK terisi, tapi tgl_kontraktor2 terisi)
+        // Sebenarnya hanya perlu cek tgl_kontraktor2 saja karena sudah mencakup semua
+        if ($tgl_kontraktor2) {
+            return 'DONE';
+        }
 
-            // Status normal (tidak ada revisi) - check scenario
-            // Scenario C: tgl_kontraktor_bast1 ada (semua tgl BAST 1 terisi)
-            if ($tgl_kontraktor_bast1) {
-                return 'DONE - Bisa ajukan Final Account';
-            }
+        // Logika 2 & 4 (Gabungan): Status Proses TTD di Pusat
+        // (tgl_pom terisi DAN tgl_pusat terisi) ATAU (tgl_pusat terisi, tapi tgl_pom TIDAK)
+        if ($tgl_pusat) { // Cukup cek tgl_pusat terisi (karena DONE sudah dicek di atas)
+            return 'BAST 2 Proses TTD di Pusat';
+        }
 
-            // Scenario A: tgl_pusat ada tapi tgl_kontraktor TIDAK ada
-            if ($tgl_pusat_bast1 && !$tgl_kontraktor_bast1) {
-                return 'BAST 1 sudah di terima - proses ke pusat';
-            }
+        // Logika 3: Proses TTD POM
+        // Jika tgl_pom terisi, tetapi tgl_pusat dan tgl_kontraktor2 belum terisi
+        if ($tgl_pom) { // Cukup cek tgl_pom terisi (karena tgl_pusat dan tgl_kontraktor2 sudah dicek di atas)
+            return 'Proses TTD POM';
+        }
 
-            // Scenario B: keduanya tidak ada
-            if (!$tgl_pusat_bast1 && !$tgl_kontraktor_bast1) {
-                return 'BAST 1 sudah diterima proses ttd PM';
-            }
-            
-            // Fallback
-            return 'BAST 1 sudah diterima';
+        // Logika 4 (Asli): Proses TTD CM atau PM
+        // Hanya tgl_terima_bast2 yang terisi, alur TTD (POM, Pusat, Kontraktor2) belum dimulai
+        if ($tgl_bast2) {
+            return 'Proses TTD CM atau PM';
         }
 
         // =========================================================================
         // LOGIKA BACKUP: Jika tidak masuk kondisi di atas
         // =========================================================================
-        if (empty($tgl_terima_asbuilt)) {
+
+        if (empty($row['tgl_terima_asbuilt'])) {
             return 'Belum BAST 1 / asbuilt belum diajukan';
-        } elseif ($tgl_terima_asbuilt && empty($tgl_terima_bast)) {
+        } elseif (!empty($row['tgl_terima_asbuilt']) && empty($row['tgl_terima_bast'])) {
             return 'Segera ajukan BAST 1';
+        } elseif (!empty($row['tgl_terima_bast']) && empty($row['tgl_closing'])) {
+            if (isset($row['opsi_retensi']) && $row['opsi_retensi'] == 0) {
+                return 'DONE';
+            }
+            return 'Ajukan Final Account terlebih dahulu';
+        } elseif (!empty($row['tgl_terima_bast']) && !empty($row['tgl_closing'])) {
+
+            // Pengecekan Masa Retensi
+            if (isset($row['opsi_retensi']) && $row['opsi_retensi'] == 0) {
+                return 'DONE';
+            }
+
+            $tgl_terima_bast = strtotime($row['tgl_terima_bast']);
+            $tgl_terima_bast_plus_retensi = strtotime("+" . $row['opsi_retensi'] . " days", $tgl_terima_bast);
+
+            if (time() >= $tgl_terima_bast_plus_retensi) {
+                return 'Masa retensi habis, segera ajukan BAST 2';
+            } else {
+                return 'BAST 2 belum diajukan / masih dalam masa retensi';
+            }
         } else {
             return '';
         }

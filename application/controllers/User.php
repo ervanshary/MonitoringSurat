@@ -6,8 +6,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-require_once APPPATH . '../vendor/autoload.php'; // Sesuaikan dengan struktur direktori proyek Anda
-
 
 class User extends CI_Controller
 {
@@ -21,6 +19,7 @@ class User extends CI_Controller
         $this->load->model('User_model');
         $this->load->model('Bast_model');
         $this->load->model('Bast2_model');
+$this->load->model('Bast2_pic_model');
         $this->load->model('Closing_model');
         $this->load->model('Laporan_model');
         $this->load->model('Partial_model', 'partial');
@@ -940,7 +939,12 @@ class User extends CI_Controller
 
     private function uploadFile()
     {
-        $config['upload_path'] = './assets/upload/bast1';
+        $upload_dir = './assets/upload/bast1';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+
+        $config['upload_path'] = $upload_dir;
         $config['allowed_types'] = 'pdf';
         $config['max_size'] = 50048; // 50MB
 
@@ -1639,7 +1643,12 @@ if (!$bast_exists || !$asbuilt_exists) {
 
     private function uploadFile2()
     {
-        $config['upload_path'] = './assets/upload/bast2';
+        $upload_dir = './assets/upload/bast2';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+
+        $config['upload_path'] = $upload_dir;
         $config['allowed_types'] = 'pdf';
         $config['max_size'] = 50048; // 50MB
 
@@ -1880,7 +1889,7 @@ if (!$bast_exists || !$asbuilt_exists) {
     public function export_report()
     {
         // Load Composer autoloader
-        require_once FCPATH . 'vendor/autoload.php';
+        $this->loadComposerAutoloadOrFail();
 
         // Ambil parameter pencarian dari request
         $search = $this->input->get('search');
@@ -1921,10 +1930,11 @@ if (!$bast_exists || !$asbuilt_exists) {
         $urutanKeterangan = [
             'Belum BAST 1 / asbuilt belum diajukan',
             'BAST 1 sudah diterima',
+            'BAST 1 DONE tidak perlu BAST 2',
             'BAST 2 belum diajukan / masih dalam masa retensi',
             'Masa retensi habis, segera ajukan BAST 2',
             'Revisi BAST 2 dikembalikan ke kontraktor',
-            'DONE'
+            'DONE BAST 2'
         ];
 
         // Buat summary baru dengan urutan yang benar
@@ -2174,7 +2184,7 @@ if (!empty($item['keterangan_asbuilt'])) {
     public function export_report_bast1()
     {
         // Load Composer autoloader
-        require_once FCPATH . 'vendor/autoload.php';
+        $this->loadComposerAutoloadOrFail();
 
         // Ambil parameter pencarian dari request
         $search = $this->input->get('search');
@@ -2214,7 +2224,7 @@ if (!empty($item['keterangan_asbuilt'])) {
             if (strpos($keterangan, 'BAST 1 sudah di terima') === 0) {
                 // BAST 1 sudah diterima - cek proses TTD
                 if ($isDateFilled($item['tgl_kontraktor_bast1'])) {
-                    $kategoriKeterangan = 'DONE';
+                    $kategoriKeterangan = 'DONE BAST 1';
                 } elseif ($isDateFilled($item['tgl_pusat_bast1'])) {
                     $kategoriKeterangan = 'Kirim Pusat';
                 } else {
@@ -2234,11 +2244,12 @@ if (!empty($item['keterangan_asbuilt'])) {
         $urutanKeterangan = [
             'Belum BAST 1 / asbuilt belum diajukan',
             'Ajukan Final Account terlebih dahulu',
+            'BAST 1 DONE tidak perlu BAST 2',
             'BAST 2 belum diajukan / masih dalam masa retensi',
             'Masa retensi habis, segera ajukan BAST 2',
             'TTD PM',
             'Kirim Pusat',
-            'DONE'
+            'DONE BAST 1'
         ];
 
         $summaryOrdered = [];
@@ -2367,7 +2378,7 @@ if (!empty($item['keterangan_asbuilt'])) {
 
             // Filter logic untuk kategori BAST 1
             $filteredData = array_filter($laporan, function ($item) use ($status, $isDateFilled) {
-                if ($status === 'DONE') {
+                if ($status === 'DONE BAST 1') {
                     return strpos($item['keterangan'], 'BAST 1 sudah di terima') === 0 && $isDateFilled($item['tgl_kontraktor_bast1']);
                 } elseif ($status === 'Kirim Pusat') {
                     return strpos($item['keterangan'], 'BAST 1 sudah di terima') === 0 && $isDateFilled($item['tgl_pusat_bast1']) && !$isDateFilled($item['tgl_kontraktor_bast1']);
@@ -2406,7 +2417,7 @@ if (!empty($item['keterangan_asbuilt'])) {
     public function export_report_bast2()
     {
         // Load Composer autoloader
-        require_once FCPATH . 'vendor/autoload.php';
+        $this->loadComposerAutoloadOrFail();
 
         // Ambil parameter pencarian dari request
         $search = $this->input->get('search');
@@ -2444,11 +2455,11 @@ if (!empty($item['keterangan_asbuilt'])) {
         $urutanKeterangan = [
             'BAST 2 belum diajukan / masih dalam masa retensi',
             'Masa retensi habis, segera ajukan BAST 2',
-            'Proses TTD POM',
+            'BAST 2 Proses TTD POM',
             'BAST 2 Proses TTD di Pusat',
-            'Proses TTD CM atau PM',
+            'BAST 2 Proses TTD PM/CM',
             'Revisi BAST 2 dikembalikan ke kontraktor',
-            'DONE'
+            'DONE BAST 2'
         ];
 
         $summaryOrdered = [];
@@ -2632,43 +2643,42 @@ if (!empty($item['keterangan_asbuilt'])) {
 
         // Logika 1 & 5: Status DONE Final (Jika Kontraktor sudah tanda tangan, terlepas dari POM/Pusat)
         if ($tgl_kontraktor2) {
-            return 'DONE';
+            return 'DONE BAST 2';
         }
 
         // Logika 2 & 4: Status Proses TTD di Pusat (Jika Pusat sudah tanda tangan, terlepas dari POM)
-        if ($tgl_pusat) {
+        if ($tgl_pusat && $tgl_bast2) {
             return 'BAST 2 Proses TTD di Pusat';
         }
 
         // Logika 3: Proses TTD POM (Jika POM sudah tanda tangan)
-        if ($tgl_pom) {
-            return 'Proses TTD POM';
+        if ($tgl_pom && $tgl_bast2) {
+            return 'BAST 2 Proses TTD POM';
         }
 
         // Logika 4 (Asli): Proses TTD CM atau PM (Jika BAST 2 diterima, tapi TTD belum dimulai)
         if ($tgl_bast2) {
-            return 'Proses TTD CM atau PM';
+            return 'BAST 2 Proses TTD PM/CM';
         }
 
         // =========================================================================
         // LOGIKA LAMA (BAST 1, Retensi, dan Final Account)
         // =========================================================================
 
-        if (empty($row['tgl_terima_asbuilt'])) {
+        // Jika BAST 1 belum diterima (regardless of asbuilt status)
+        if (empty($row['tgl_terima_bast'])) {
             return 'Belum BAST 1 / asbuilt belum diajukan';
-        } elseif (!empty($row['tgl_terima_asbuilt']) && empty($row['tgl_terima_bast'])) {
-            return 'Segera ajukan BAST 1';
         } elseif (!empty($row['tgl_terima_bast']) && empty($row['tgl_closing'])) {
             // Jika retensi 0, langsung DONE di tahap ini
             if (isset($row['opsi_retensi']) && $row['opsi_retensi'] == 0) {
-                return 'DONE';
+                return 'DONE BAST 1';
             }
             return 'Ajukan Final Account terlebih dahulu';
         } elseif (!empty($row['tgl_terima_bast']) && !empty($row['tgl_closing'])) {
 
             // Pengecekan Masa Retensi
             if (isset($row['opsi_retensi']) && $row['opsi_retensi'] == 0) {
-                return 'DONE';
+                return 'DONE BAST 1';
             }
 
             $tgl_terima_bast = strtotime($row['tgl_terima_bast']);
@@ -2694,7 +2704,7 @@ if (!empty($item['keterangan_asbuilt'])) {
     public function export_bast2()
     {
         // Load Composer autoloader
-        require_once FCPATH . 'vendor/autoload.php';
+        $this->loadComposerAutoloadOrFail();
 
         // Ambil parameter pencarian dari request
         $search = $this->input->get('search');
@@ -2817,7 +2827,7 @@ if (!empty($item['keterangan_asbuilt'])) {
     public function exportFilteredDataToExcel()
     {
         // Load Composer autoloader
-        require_once FCPATH . 'vendor/autoload.php';
+        $this->loadComposerAutoloadOrFail();
 
         // Ambil parameter pencarian dari request
         $search = $this->input->post('search');
@@ -3012,7 +3022,7 @@ if (!empty($item['keterangan_asbuilt'])) {
     public function export_partial()
     {
         // Load Composer autoloader
-        require_once FCPATH . 'vendor/autoload.php';
+        $this->loadComposerAutoloadOrFail();
 
         // Ambil parameter pencarian dari request
         $search = $this->input->get('search');
@@ -3280,5 +3290,24 @@ if (!empty($item['keterangan_asbuilt'])) {
                          'Total data yang diupdate: <strong>' . $totalAffected . ' data</strong><br>' .
                          'Tabel: ' . implode(', ', $successTables)
         ]);
+    }
+
+    /**
+     * Memuat autoloader Composer jika tersedia.
+     * Jika belum ada, hentikan proses export dengan pesan yang jelas.
+     */
+    private function loadComposerAutoloadOrFail()
+    {
+        $autoloadPath = FCPATH . 'vendor/autoload.php';
+        if (!file_exists($autoloadPath)) {
+            show_error(
+                'Dependensi export belum terpasang. Jalankan <code>composer install</code> di root project terlebih dahulu.',
+                500,
+                'Composer Autoload Not Found'
+            );
+            return;
+        }
+
+        require_once $autoloadPath;
     }
 }

@@ -404,10 +404,14 @@
                             <?php endif; ?>
                         </td>
                         <td class="py-2 px-3 text-center">
-                            <a href="<?= base_url('assets/upload/bast2/' . $data['file_pdf_bast2']); ?>" target="_blank"
-                                class="text-indigo-600 hover:text-indigo-800 text-lg transition duration-150">
-                                <i class="fas fa-file-pdf"></i>
-                            </a>
+                            <?php if (!empty($data['file_pdf_bast2']) && file_exists(FCPATH . 'assets/upload/bast2/' . $data['file_pdf_bast2'])) : ?>
+                                <a href="<?= base_url('assets/upload/bast2/' . $data['file_pdf_bast2']); ?>" target="_blank"
+                                    class="text-indigo-600 hover:text-indigo-800 text-lg transition duration-150">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                            <?php else : ?>
+                                -
+                            <?php endif; ?>
                         </td>
                         <td class="py-2 px-3 whitespace-nowrap" data-toggle="tooltip"
                             title="<?= !empty($data['created_by']) ? $data['created_by'] : '-'; ?>">
