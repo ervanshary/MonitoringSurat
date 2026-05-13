@@ -213,23 +213,25 @@
                         <?= isset($data['opsi_retensi']) ? $data['opsi_retensi'] . ' hari' : ''; ?></td>
                     <td class="py-2 px-3 text-center">
                         <?php if (!empty($data['is_revisi']) && $data['is_revisi'] == 1) : ?>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                                <i class="fas fa-exclamation-circle mr-1"></i> Revisi
-                            </span>
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                            <i class="fas fa-exclamation-circle mr-1"></i> Revisi
+                        </span>
                         <?php else : ?>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                <i class="fas fa-check-circle mr-1"></i> Normal
-                            </span>
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            <i class="fas fa-check-circle mr-1"></i> Normal
+                        </span>
                         <?php endif; ?>
                     </td>
                     <td class="py-2 px-3 text-center">
                         <?php if (!empty($data['file_pdf']) && file_exists(FCPATH . 'assets/upload/bast1/' . $data['file_pdf'])) : ?>
-                            <a href="<?= base_url('assets/upload/bast1/' . $data['file_pdf']); ?>" target="_blank"
-                                class="text-indigo-600 hover:text-indigo-800 text-lg transition">
-                                <i class="fas fa-file-pdf"></i>
-                            </a>
+                        <a href="<?= base_url('assets/upload/bast1/' . $data['file_pdf']); ?>" target="_blank"
+                            class="text-indigo-600 hover:text-indigo-800 text-lg transition">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
                         <?php else : ?>
-                            -
+                        -
                         <?php endif; ?>
                     </td>
                     <td class="py-2 px-3" data-toggle="tooltip"
@@ -481,14 +483,15 @@
                                 <i class="fas fa-exclamation-triangle mr-2"></i> Status Revisi
                             </h6>
                             <div class="flex items-center">
-                                <input type="checkbox" id="editIsRevisi" name="is_revisi" value="1" 
+                                <input type="checkbox" id="editIsRevisi" name="is_revisi" value="1"
                                     class="h-5 w-5 text-red-600 rounded focus:ring-2 focus:ring-red-500 cursor-pointer">
                                 <label for="editIsRevisi" class="ml-3 text-sm font-medium text-gray-700 cursor-pointer">
                                     <strong>Centang jika dokumen dikembalikan untuk revisi ke kontraktor</strong>
                                 </label>
                             </div>
                             <p class="text-xs text-red-600 mt-2">
-                                Jika dicentang, keterangan otomatis akan berubah menjadi "Revisi dikembalikan ke kontraktor"
+                                Jika dicentang, keterangan otomatis akan berubah menjadi "Revisi dikembalikan ke
+                                kontraktor"
                             </p>
                         </div>
 
@@ -578,11 +581,13 @@
                                         accept="application/pdf"> </div>
                                 <!-- Checkbox Revisi -->
                                 <div class="form-group form-check mt-3">
-                                    <input type="checkbox" class="form-check-input" id="is_revisi_add" name="is_revisi" value="1">
+                                    <input type="checkbox" class="form-check-input" id="is_revisi_add" name="is_revisi"
+                                        value="1">
                                     <label class="form-check-label" for="is_revisi_add">
                                         <strong>Dokumen dikembalikan untuk revisi</strong>
                                     </label>
-                                    <small class="d-block text-muted mt-1">Centang jika dokumen dikembalikan ke kontraktor untuk revisi</small>
+                                    <small class="d-block text-muted mt-1">Centang jika dokumen dikembalikan ke
+                                        kontraktor untuk revisi</small>
                                 </div>
                                 <!-- Tombol submit -->
                                 <div class="form-group text-right mt-3"> <button type="submit"
@@ -774,7 +779,7 @@
             $('#editKeterangan').val($(this).data('keterangan'));
             $('#editCreatedBy').val($(this).data('createdby') || '-');
             $('#editUpdatedBy').val($(this).data('updatedby') || '-');
-            
+
             // Load checkbox revisi
             var isRevisi = $(this).data('isrevisi');
             console.log('Is Revisi Value:', isRevisi);
@@ -804,29 +809,29 @@
             var urlParams = new URLSearchParams(window.location.search);
             var currentPage = urlParams.get('page') || '1';
             var searchQuery = urlParams.get('search') || '';
-            
+
             console.log('=== FORM SUBMIT DEBUG (BAST1) ===');
             console.log('URL params - page:', currentPage);
             console.log('URL params - search:', searchQuery);
             console.log('URL:', window.location.href);
-            
+
             // Set hidden fields dengan nilai terbaru
             var pageField = document.getElementById('editPage1');
             var searchField = document.getElementById('editSearch1');
-            
+
             pageField.value = currentPage;
             searchField.value = searchQuery;
-            
+
             console.log('After setting - page field value:', pageField.value);
             console.log('After setting - search field value:', searchField.value);
-            
+
             // Verify form data sebelum submit
             var formData = new FormData(this);
             console.log('Form data akan dikirim:');
             for (var pair of formData.entries()) {
                 console.log(pair[0] + ': ' + pair[1]);
             }
-            
+
             // Let form submit normally (tidak prevent default)
             // Form akan submit via POST dan redirect dengan parameters
         });
@@ -967,15 +972,15 @@
         var urlParams = new URLSearchParams(window.location.search);
         var currentPage = urlParams.get('page') || '1';
         var searchQuery = urlParams.get('search') || '';
-        
+
         document.getElementById('editPage1').value = currentPage;
         document.getElementById('editSearch1').value = searchQuery;
-        
+
         // Destroy DataTable sebelum form submit/redirect
         if ($.fn.dataTable.isDataTable('#data-tabel')) {
             $('#data-tabel').DataTable().destroy();
         }
-        
+
         console.log('Form submitted:');
         console.log('  Page:', currentPage);
         console.log('  Search:', searchQuery);

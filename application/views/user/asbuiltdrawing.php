@@ -210,6 +210,137 @@
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5) !important;
     }
+
+    /* ===== CUSTOM SEARCH SUGGESTION ===== */
+    .search-input-group {
+        position: relative;
+        width: 100%;
+    }
+
+    .search-input-group .form-control {
+        border: 2px solid #e0e7ff;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: #f8fafb;
+    }
+
+    .search-input-group .form-control:focus {
+        border-color: #667eea;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .search-input-group .form-control::placeholder {
+        color: #94a3b8;
+        font-style: italic;
+    }
+
+    .suggestion-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 8px;
+        z-index: 1050;
+        display: none;
+    }
+
+    .suggestion-dropdown.active {
+        display: block;
+        animation: slideDown 0.2s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .suggestion-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #334155;
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+
+    .suggestion-item:hover {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+        padding-left: 1.5rem;
+    }
+
+    .suggestion-item i {
+        margin-right: 0.5rem;
+        opacity: 0.7;
+    }
+
+    .suggestion-item:hover i {
+        opacity: 1;
+    }
+
+    .suggestion-empty {
+        padding: 2rem 1rem;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+
+    .suggestion-empty i {
+        display: block;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.5;
+    }
+
+    .help-text-error {
+        display: none;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: #ef4444;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .help-text-error.active {
+        display: flex;
+        align-items: center;
+    }
+
+    .help-text-error i {
+        margin-right: 0.5rem;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
     </style>
 </head>
 
@@ -550,13 +681,17 @@
                 <form action="<?= base_url('user/add_asbuilt_data'); ?>" method="post">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="nama_pt">Nama PT</label>
-                            <select class="form-control" id="nama_pt" name="nama_pt" required>
-                                <option value="">Pilih Nama PT</option>
-                                <?php foreach ($finalAccount as $fa) : ?>
-                                <option value="<?= $fa['nama_pt']; ?>"><?= $fa['nama_pt']; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <label for="nama_pt" style="font-weight: 600; color: #333; margin-bottom: 0.5rem;">
+                                <i class="fas fa-building" style="color: #667eea; margin-right: 0.5rem;"></i>Nama PT
+                            </label>
+                            <div class="search-input-group">
+                                <input type="text" class="form-control" id="nama_pt" name="nama_pt"
+                                    placeholder="Ketik nama PT..." autocomplete="off" required>
+                                <div class="suggestion-dropdown" id="nama_pt_dropdown"></div>
+                            </div>
+                            <small class="help-text-error" id="namaPtHelp">
+                                <i class="fas fa-exclamation-circle"></i> Data tidak ditemukan
+                            </small>
                         </div>
                         <div class="form-group">
                             <label for="no_kontrak">No Kontrak</label>
@@ -610,8 +745,6 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script>
     $(document).ready(function() {
 
@@ -715,33 +848,61 @@
             localStorage.removeItem('currentPage'); // Clear saved page after applying
         }
 
-        // Menambahkan opsi ke dropdown
-        $('#nama_pt').append(options.map(function(option) {
-            return $('<option>', {
-                value: option.id,
-                text: option.text
-            });
-        }));
+        var namaPtList = $('#nama_pt_dropdown');
+        var namaPtData = options.slice(); // Copy array
 
-        // Inisialisasi Select2
-        $('#nama_pt').select2({
-            placeholder: "Pilih Nama PT",
-            allowClear: true,
-            matcher: function(params, data) {
-                if ($.trim(params.term) === '') {
-                    return data;
-                }
-                if (typeof data.text === 'undefined') {
-                    return null;
-                }
-                // Ubah kata kunci pencarian menjadi lowercase
-                var term = params.term.toLowerCase();
-                // Hilangkan "PT." dan "CV." dan cek huruf pertama setelah itu
-                var text = data.text.replace(/^(PT|CV)\.\s*/i, '').toLowerCase();
-                if (text.includes(term)) {
-                    return data;
-                }
-                return null;
+        function renderSuggestions(term) {
+            namaPtList.empty();
+            if (!term) {
+                namaPtList.removeClass('active');
+                return;
+            }
+
+            var filtered = namaPtData.filter(function(item) {
+                return item.text.toLowerCase().indexOf(term.toLowerCase()) !== -1;
+            });
+
+            if (filtered.length === 0) {
+                namaPtList.html(
+                    '<div class="suggestion-empty"><i class="fas fa-search"></i><div>Tidak ada data yang cocok</div></div>'
+                    );
+                namaPtList.addClass('active');
+                $('#namaPtHelp').addClass('active');
+            } else {
+                var html = '';
+                filtered.forEach(function(item) {
+                    html += '<div class="suggestion-item" data-value="' + item.text + '">' +
+                        '<i class="fas fa-briefcase"></i>' + item.text +
+                        '</div>';
+                });
+                namaPtList.html(html);
+                namaPtList.addClass('active');
+                $('#namaPtHelp').removeClass('active');
+            }
+        }
+
+        $('#nama_pt').on('input', function() {
+            var val = $(this).val().trim();
+            renderSuggestions(val);
+        });
+
+        $(document).on('click', '.suggestion-item', function() {
+            var value = $(this).data('value');
+            $('#nama_pt').val(value);
+            namaPtList.removeClass('active');
+            $('#namaPtHelp').removeClass('active');
+            $('#nama_pt').trigger('change');
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.search-input-group').length) {
+                namaPtList.removeClass('active');
+            }
+        });
+
+        $('#nama_pt').on('focus', function() {
+            if ($(this).val().trim()) {
+                renderSuggestions($(this).val().trim());
             }
         });
 
